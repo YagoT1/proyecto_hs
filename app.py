@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from datetime import date
 from io import BytesIO
 
+
 # Cargar variables de entorno
 load_dotenv()
 
