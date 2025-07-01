@@ -1,53 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="content-section">
-        <form method="POST">
-            {# Esto es CRUCIAL para la protección CSRF y para renderizar el campo oculto de WTForms #}
-            {{ form.hidden_tag() }} 
-            
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Iniciar Sesión</legend>
-                
-                <div class="form-group">
-                    {{ form.username.label(class="form-control-label") }}
-                    {{ form.username(class="form-control form-control-lg") }}
-                    {% if form.username.errors %}
-                        {% for error in form.username.errors %}
-                            <span class="text-danger">{{ error }}</span><br>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    {{ form.password.label(class="form-control-label") }}
-                    {{ form.password(class="form-control form-control-lg") }}
-                    {% if form.password.errors %}
-                        {% for error in form.password.errors %}
-                            <span class="text-danger">{{ error }}</span><br>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                
-                <div class="form-check">
-                    {{ form.remember_me(class="form-check-input") }}
-                    {{ form.remember_me.label(class="form-check-label") }}
-                </div>
-            </fieldset>
-            
-            <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
-            </div>
-            
-            <small class="text-muted ml-2">
-                <a href="#">¿Olvidaste la Contraseña?</a>
-            </small>
-        </form>
-    </div>
-    
-    <div class="border-top pt-3">
-        <small class="text-muted">
-            ¿Necesitas una cuenta? <a class="ml-2" href="{{ url_for('auth.register') }}">Regístrate Ahora</a>
-        </small>
-    </div>
-{% endblock content %}
+<h2>Login</h2>
+<form method="post">
+  <input name="username" placeholder="Usuario">
+  <input name="password" type="password" placeholder="Contraseña">
+  <button type="submit">Ingresar</button>
+</form>
+{% endblock %}

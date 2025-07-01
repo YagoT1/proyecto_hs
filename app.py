@@ -1,6 +1,6 @@
 # proyecto_hs/app.py
 
-from app import create_app, db # Importa la función 'create_app' y la instancia de 'db' desde tu paquete 'app'
+from app import create_app # Importa la función 'create_app' y la instancia de 'db' desde tu paquete 'app'
 
 # Crea la instancia de la aplicación llamando a la fábrica
 app = create_app()
