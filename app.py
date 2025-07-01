@@ -1,93 +1,63 @@
-from flask import Flask, render_template, request, send_file, flash
+import os
+from flask import Flask, render_template, request, send_file, flash, redirect, url_for
 from fpdf import FPDF
-from datetime import datetime
-import io
-import locale
+from dotenv import load_dotenv
+from datetime import date
+from io import BytesIO
+
+# Cargar variables de entorno
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'clave_segura_para_mensajes_flash'  # Reemplazar con una clave segura
+app.secret_key = os.getenv("SECRET_KEY", "clave_segura_por_defecto")
 
-# Localización en español (ajustar si estás en Windows)
-try:
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-except:
-    try:
-        locale.setlocale(locale.LC_TIME, 'Spanish_Spain')
-    except:
-        pass  # Usa inglés si no se puede cambiar
+# Función para detectar domingos
+def es_dia_100(dia):
+    fecha = date(date.today().year, date.today().month, dia)
+    return fecha.weekday() == 6  # 6 = domingo
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    hoy = datetime.today()
-    dia_actual = hoy.day
-    mes_actual = hoy.month
-    anio = hoy.year
-
-    nombre_mes = hoy.strftime("%B").capitalize()
-    horas_extra = []
-    total_50 = 0
-    total_100 = 0
+    hoy = date.today()
+    dias_del_mes = hoy.day
+    datos = []
 
     if request.method == "POST":
-        feriados = request.form.getlist("feriados[]")
-        feriados = [int(f) for f in feriados]
+        for dia in range(1, dias_del_mes + 1):
+            horas = request.form.get(f"horas_{dia}")
+            obs = request.form.get(f"obs_{dia}", "")
+            feriado = f"feriado_{dia}" in request.form
 
-        for dia in range(1, dia_actual + 1):
-            horas_input = request.form.get(f"horas_{dia}")
-            observacion = request.form.get(f"obs_{dia}", "").strip()
+            if horas:
+                tipo = "100%" if feriado or es_dia_100(dia) else "50%"
+                datos.append((dia, horas, tipo, obs))
 
-            if not horas_input:
-                continue
+        if not datos:
+            flash("No se ingresaron horas válidas.", "error")
+            return redirect(url_for("index"))
 
-            try:
-                horas = float(horas_input)
-                if horas < 0 or horas > 24:
-                    raise ValueError
-            except ValueError:
-                flash(f"Error en el ingreso del día {dia}: Ingrese un valor numérico válido entre 0 y 24 hs.", "error")
-                return render_template("form.html", dia_hoy=dia_actual)
-
-            if datetime(anio, mes_actual, dia).weekday() == 6 or dia in feriados:
-                tipo = "100%"
-                total_100 += horas
-            else:
-                tipo = "50%"
-                total_50 += horas
-
-            horas_extra.append((dia, horas, tipo, observacion))
-
-        if not horas_extra:
-            flash("No se ingresaron horas válidas para generar el PDF.", "error")
-            return render_template("form.html", dia_hoy=dia_actual)
-
-        # Crear PDF
+        # Generar PDF en memoria
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=12)
-        pdf.cell(200, 10, txt=f"Reporte de Horas Extra - {nombre_mes} {anio}", ln=True, align="C")
-        pdf.ln(10)
-
-        for dia, horas, tipo, obs in horas_extra:
-            linea = f"{dia:02d} - {horas:.2f} hs - {tipo} - {obs}"
-            pdf.cell(200, 10, txt=linea, ln=True)
-
+        pdf.cell(200, 10, txt=f"Horas Extra - {hoy.strftime('%B %Y')}", ln=1, align='C')
         pdf.ln(5)
-        pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(200, 10, txt=f"Total horas al 50%: {total_50:.2f}", ln=True)
-        pdf.cell(200, 10, txt=f"Total horas al 100%: {total_100:.2f}", ln=True)
 
-        pdf_bytes = pdf.output(dest='S').encode('latin1')
-        pdf_output = io.BytesIO(pdf_bytes)
-        pdf_output.seek(0)
+        for dia, horas, tipo, obs in datos:
+            linea = f"Día {dia} - {horas} hs - {tipo}"
+            if obs:
+                linea += f" - {obs}"
+            pdf.cell(200, 10, txt=linea, ln=1)
 
-        return send_file(
-            pdf_output,
-            as_attachment=True,
-            download_name='horas_extra.pdf',
-            mimetype='application/pdf'
-        )
+        output = BytesIO()
+        pdf.output(output)
+        output.seek(0)
 
-    return render_template("form.html", dia_hoy=dia_actual)
+        filename = f"horas_extra_{hoy.month}_{hoy.year}.pdf"
+        return send_file(output, download_name=filename, as_attachment=True)
+
+    return render_template("index.html", dias=dias_del_mes)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
