@@ -1,0 +1,47 @@
+{# templates/index.html #}
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mt-4">
+        <h1>Bienvenido, {{ current_user.username }}!</h1>
+        <p>Este es tu dashboard. Desde aquí puedes gestionar tus horas extra.</p>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Registrar Nuevas Horas</h2>
+                <a href="{{ url_for('main.registrar_horas') }}" class="btn btn-primary">Registrar Horas Ahora</a>
+            </div>
+            <div class="col-md-6">
+                <h2>Ver Historial</h2>
+                <a href="{{ url_for('main.historial') }}" class="btn btn-info">Ver Mi Historial</a>
+            </div>
+        </div>
+
+        {% if recent_registros %}
+            <h3 class="mt-5">Últimos Registros</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Horas</th>
+                        <th>Tipo</th>
+                        <th>Observación</th>
+                        <th>Fecha Registro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in recent_registros %}
+                    <tr>
+                        <td>{{ reg.fecha.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ reg.horas }}</td>
+                        <td>{{ reg.tipo }}</td>
+                        <td>{{ reg.observacion | default('N/A', true) }}</td>
+                        <td>{{ reg.timestamp.strftime('%d-%m-%Y %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="mt-5">No tienes registros recientes. ¡Empieza a registrar tus horas!</p>
+        {% endif %}
+    </div>
+{% endblock content %}

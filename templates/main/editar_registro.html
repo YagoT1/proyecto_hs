@@ -1,0 +1,63 @@
+{# templates/main/editar_registro.html #}
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mt-4">
+        <h1>Editar Registro de Horas Extra</h1>
+        <form method="POST">
+            {{ form.csrf_token }}
+
+            <div class="mb-3">
+                {{ form.fecha.label(class="form-label") }}
+                {{ form.fecha(class="form-control") }}
+                {% if form.fecha.errors %}
+                    <div class="alert alert-danger mt-1" role="alert">
+                        {% for error in form.fecha.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.horas.label(class="form-label") }}
+                {{ form.horas(class="form-control") }}
+                {% if form.horas.errors %}
+                    <div class="alert alert-danger mt-1" role="alert">
+                        {% for error in form.horas.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.tipo.label(class="form-label") }}
+                {{ form.tipo(class="form-select") }}
+                {% if form.tipo.errors %}
+                    <div class="alert alert-danger mt-1" role="alert">
+                        {% for error in form.tipo.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.observacion.label(class="form-label") }}
+                {{ form.observacion(class="form-control") }}
+                {% if form.observacion.errors %}
+                    <div class="alert alert-danger mt-1" role="alert">
+                        {% for error in form.observacion.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.submit(class="btn btn-warning", value="Actualizar Registro") }}
+            </div>
+        </form>
+        <p><a href="{{ url_for('main.historial') }}">Volver al Historial</a></p>
+    </div>
+{% endblock content %}

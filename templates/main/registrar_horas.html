@@ -1,0 +1,63 @@
+{# templates/main/registrar_horas.html #}
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mt-4">
+        <h1>Registrar Nuevas Horas Extra</h1>
+        <form method="POST">
+            {{ form.csrf_token }} {# Esencial para la seguridad de formularios #}
+
+            <div class="mb-3">
+                {{ form.fecha.label(class="form-label") }}
+                {{ form.fecha(class="form-control") }}
+                {% if form.fecha.errors %}
+                    <div class="alert alert-danger mt-1" role="alert">
+                        {% for error in form.fecha.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.horas.label(class="form-label") }}
+                {{ form.horas(class="form-control") }}
+                {% if form.horas.errors %}
+                    <div class="alert alert-danger mt-1" role="alert">
+                        {% for error in form.horas.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.tipo.label(class="form-label") }}
+                {{ form.tipo(class="form-select") }}
+                {% if form.tipo.errors %}
+                    <div class="alert alert-danger mt-1" role="alert">
+                        {% for error in form.tipo.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.observacion.label(class="form-label") }}
+                {{ form.observacion(class="form-control") }}
+                {% if form.observacion.errors %}
+                    <div class="alert alert-danger mt-1" role="alert">
+                        {% for error in form.observacion.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.submit(class="btn btn-success") }}
+            </div>
+        </form>
+        <p><a href="{{ url_for('main.dashboard') }}">Volver al Dashboard</a></p>
+    </div>
+{% endblock content %}

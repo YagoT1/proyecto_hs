@@ -1,0 +1,91 @@
+{# templates/historial.html #}
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mt-4">
+        <h1>Historial de Horas Extra</h1>
+
+        {# Formulario de filtro por mes y año #}
+        <form method="GET" action="{{ url_for('main.historial') }}" class="mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="year" class="form-label">Año:</label>
+                    <select name="year" id="year" class="form-select">
+                        {% for y, m in available_dates | sort(attribute=0) | unique(attribute=0) %}
+                            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                        <option value="{{ current_date.year + 1 }}" {% if current_date.year + 1 == year %}selected{% endif %}>{{ current_date.year + 1 }}</option> {# Opcional: año siguiente #}
+                        <option value="{{ current_date.year }}" {% if current_date.year == year and not available_dates %}selected{% endif %}>{{ current_date.year }}</option> {# Año actual #}
+
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="month" class="form-label">Mes:</label>
+                    <select name="month" id="month" class="form-select">
+                        {% set months = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'} %}
+                        {% for m_num in range(1, 13) %}
+                            <option value="{{ m_num }}" {% if m_num == month %}selected{% endif %}>{{ months[m_num] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </div>
+            </div>
+        </form>
+
+        {% if registros %}
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Horas</th>
+                        <th>Tipo</th>
+                        <th>Observación</th>
+                        <th>Fecha Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                        <tr>
+                            <td>{{ registro.fecha.strftime('%d-%m-%Y') }}</td>
+                            <td>{{ registro.horas }}</td>
+                            <td>{{ registro.tipo }}</td>
+                            <td>{{ registro.observacion | default('N/A', true) }}</td>
+                            <td>{{ registro.timestamp.strftime('%d-%m-%Y %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('main.editar_registro', registro_id=registro.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal-{{ registro.id }}">Eliminar</button>
+
+                                {# Modal de confirmación para eliminar #}
+                                <div class="modal fade" id="confirmDeleteModal-{{ registro.id }}" tabindex="-1" aria-labelledby="confirmDeleteModalLabel-{{ registro.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="confirmDeleteModalLabel-{{ registro.id }}">Confirmar Eliminación</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                ¿Estás seguro de que quieres eliminar el registro del {{ registro.fecha.strftime('%d-%m-%Y') }} ({{ registro.horas }} horas - {{ registro.tipo }})?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <form action="{{ url_for('main.eliminar_registro', registro_id=registro.id) }}" method="POST" style="display:inline;">
+                                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay registros de horas extra para {{ months[month] }} de {{ year }}.</p>
+            <a href="{{ url_for('main.registrar_horas') }}" class="btn btn-success">Registrar la primera hora extra</a>
+        {% endif %}
+        <p><a href="{{ url_for('main.dashboard') }}">Volver al Dashboard</a></p>
+    </div>
+{% endblock content %}
