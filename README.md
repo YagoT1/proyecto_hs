@@ -31,3 +31,4 @@ Aplicación web desarrollada en Python con Flask para registrar y calcular horas
 ```bash
 git clone https://github.com/YagoT1/proyecto_hs.git
 cd proyecto_hs
+# proyectohoraext
