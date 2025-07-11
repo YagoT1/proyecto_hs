@@ -21,7 +21,7 @@ def login():
 
         user = User.query.filter_by(username=username).first()
         if not user:
-            flash("Usuario no encontrado.", "error")
+            flash("Usuario no registrado.", "error")
             return redirect(url_for("auth.login"))
 
         if not check_password_hash(user.password, password):

@@ -1,9 +1,12 @@
 from flask import Blueprint, render_template, request, send_file, flash, redirect, url_for
 from fpdf import FPDF
 from flask_login import login_required
+from flask_login import current_user
 from datetime import date
 from io import BytesIO
-
+from app.forms import RegistroForm
+from app.models import Registro
+from app    import db
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route("/", methods=["GET", "POST"])
@@ -48,3 +51,21 @@ def index():
         return send_file(output, download_name=filename, as_attachment=True)
 
     return render_template("index.html", dias=dias_del_mes)
+
+@main_bp.route("/registrar", methods=["GET", "POST"])
+@login_required
+def registrar_horas():
+    form = RegistroForm()
+    if form.validate_on_submit():
+        nuevo_registro = Registro(
+            fecha=form.fecha.data,
+            horas=form.horas.data,
+            tipo=form.tipo.data,
+            observacion=form.observacion.data,
+            user_id=current_user.id
+        )
+        db.session.add(nuevo_registro)
+        db.session.commit()
+        flash("Horas extra registradas con éxito.", "success")
+        return redirect(url_for("main.index"))
+    return render_template("main/registrar_horas.html", form=form)

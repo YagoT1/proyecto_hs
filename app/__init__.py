@@ -4,18 +4,37 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from dotenv import load_dotenv
 
+load_dotenv()
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 
-load_dotenv()
 
 def create_app():
     app = Flask(__name__)
 
+    # Crear carpeta instance si no existe
+    instance_path = os.path.join(app.root_path, 'instance')
+    if not os.path.exists(instance_path):
+        os.makedirs(instance_path)
+
     # Configuración básica
     app.secret_key = os.getenv("SECRET_KEY", "clave_segura_por_defecto")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///instance/users.db")
+
+    # Ruta absoluta para la base de datos SQLite dentro de instance
+    db_path = os.getenv("DATABASE_URL")
+    if not db_path:
+        # Si no está en .env, usar ruta por defecto
+        db_path = f"sqlite:///{os.path.join(instance_path, 'users.db')}"
+    else:
+        # Si viene con sqlite:/// relativo, convertirlo a absoluto para evitar problemas
+        if db_path.startswith("sqlite:///"):
+            relative_path = db_path.replace("sqlite:///", "")
+            abs_path = os.path.join(app.root_path, relative_path)
+            db_path = f"sqlite:///{abs_path}"
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_path
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Inicializar extensiones con la app
