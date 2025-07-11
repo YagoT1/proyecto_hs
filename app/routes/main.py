@@ -6,7 +6,9 @@ from datetime import date
 from io import BytesIO
 from app.forms import RegistroForm
 from app.models import Registro
-from app    import db
+from app import db
+
+# Define el Blueprint con el nombre 'main'
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route("/", methods=["GET", "POST"])
@@ -68,4 +70,18 @@ def registrar_horas():
         db.session.commit()
         flash("Horas extra registradas con éxito.", "success")
         return redirect(url_for("main.index"))
+    # Asegúrate de que la plantilla 'main/registrar_horas.html' exista
     return render_template("main/registrar_horas.html", form=form)
+
+# Nueva ruta para el historial
+@main_bp.route('/historial')
+@login_required # Si esta ruta requiere que el usuario esté logueado
+def historial():
+    # Aquí puedes recuperar los registros del usuario actual desde la base de datos
+    # Por ejemplo:
+    # registros = Registro.query.filter_by(user_id=current_user.id).order_by(Registro.fecha.desc()).all()
+    # return render_template("historial.html", registros=registros)
+
+    # Por ahora, solo renderiza la plantilla.
+    # Asegúrate de que la plantilla 'historial.html' exista en tu carpeta 'templates'.
+    return render_template("historial.html")
