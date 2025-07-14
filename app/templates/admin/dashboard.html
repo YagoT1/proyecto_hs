@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700">
+    <h1 class="text-4xl font-bold mb-6 text-white">Panel de Administración</h1>
+    <p class="text-lg mb-8 text-gray-300">Gestión centralizada de usuarios y sus datos.</p>
+
+    <h2 class="text-3xl font-semibold mb-6 text-white text-left">Todos los Usuarios</h2>
+
+    {% if users %}
+    <div class="overflow-x-auto rounded-xl shadow-xl border border-gray-700">
+        <table class="min-w-full bg-gray-900 text-white">
+            <thead class="bg-gray-700">
+                <tr>
+                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider rounded-tl-xl">ID</th>
+                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">Username</th>
+                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">Email</th>
+                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">Total Horas</th>
+                    {# Las columnas 'Admin', 'Moderador' y 'Owner' solo se muestran si el usuario actual es un administrador completo #}
+                    {% if current_user.is_admin %}
+                        <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider">Admin</th>
+                        <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider">Moderador</th>
+                        <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider">Owner</th>
+                    {% endif %}
+                    <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider rounded-tr-xl">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr class="{% if loop.index % 2 == 0 %}bg-gray-800{% else %}bg-gray-850{% endif %} border-b border-gray-700 hover:bg-gray-700 transition duration-200 ease-in-out">
+                    <td class="py-3.5 px-6 text-base">{{ user.id }}</td>
+                    <td class="py-3.5 px-6 text-base">{{ user.username }}</td>
+                    <td class="py-3.5 px-6 text-base">{{ user.email }}</td>
+                    <td class="py-3.5 px-6 text-base">{{ user.total_horas }} hs</td>
+                    {# Las columnas 'Admin', 'Moderador' y 'Owner' solo se muestran si el usuario actual es un administrador completo #}
+                    {% if current_user.is_admin %}
+                        <td class="py-3.5 px-6 text-center">
+                            {% if user.is_admin %}
+                                <span class="text-green-500 font-bold">Sí</span>
+                            {% else %}
+                                <span class="text-red-500">No</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-6 text-center"> {# Columna Moderador #}
+                            {% if user.is_moderator %}
+                                <span class="text-green-500 font-bold">Sí</span>
+                            {% else %}
+                                <span class="text-red-500">No</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-6 text-center"> {# Columna Owner #}
+                            {% if user.is_owner %}
+                                <span class="text-yellow-500 font-bold">Sí</span>
+                            {% else %}
+                                <span class="text-red-500">No</span>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                    <td class="py-3.5 px-6 text-center flex justify-center items-center space-x-3">
+                        {# Botones de acción solo visibles para administradores completos #}
+                        {% if current_user.is_admin or current_user.is_moderator %} {# Moderadores también pueden ver, pero no todas las acciones #}
+                            <a href="{{ url_for('main.admin_edit_user', user_id=user.id) }}"
+                               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md
+                               {% if not current_user.is_admin or (user.is_owner and not current_user.is_owner) %}opacity-50 cursor-not-allowed{% endif %}"
+                               {% if not current_user.is_admin or (user.is_owner and not current_user.is_owner) %}onclick="return false;"{% endif %}>
+                                Editar
+                            </a>
+                            <a href="{{ url_for('main.admin_reset_user_password', user_id=user.id) }}"
+                               class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md
+                               {% if not current_user.is_admin or (user.is_owner and not current_user.is_owner) %}opacity-50 cursor-not-allowed{% endif %}"
+                               {% if not current_user.is_admin or (user.is_owner and not current_user.is_owner) %}onclick="return false;"{% endif %}>
+                                Restablecer Contraseña
+                            </a>
+                            
+                            {# Botones para cambiar rol Admin - Solo visibles y activos para el Owner #}
+                            {% if current_user.is_owner %}
+                                {% if user.id != current_user.id %} {# No permitir cambiar el propio rol admin #}
+                                    {% if user.is_admin %}
+                                        <button type="button"
+                                                onclick="showAdminToggleConfirmation('{{ url_for('main.admin_toggle_admin_status', user_id=user.id) }}', 'quitar_admin');"
+                                                class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
+                                            Quitar Admin
+                                        </button>
+                                    {% else %}
+                                        <button type="button"
+                                                onclick="showAdminToggleConfirmation('{{ url_for('main.admin_toggle_admin_status', user_id=user.id) }}', 'hacer_admin');"
+                                                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
+                                            Hacer Admin
+                                        </button>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-gray-500 text-sm italic">Tu Cuenta</span>
+                                {% endif %}
+                            {% endif %}
+
+                            {# Botones para cambiar rol Moderador - Visibles para Admin y Owner #}
+                            {% if current_user.is_admin or current_user.is_owner %}
+                                {% if user.id != current_user.id %} {# No permitir cambiar el propio rol moderador #}
+                                    {% if user.is_moderator %}
+                                        <button type="button"
+                                                onclick="showAdminToggleConfirmation('{{ url_for('main.admin_toggle_moderator_status', user_id=user.id) }}', 'quitar_moderator');"
+                                                class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md
+                                                {% if user.is_admin and not user.is_owner %}opacity-50 cursor-not-allowed{% endif %}"
+                                                {% if user.is_admin and not user.is_owner %}onclick="return false;"{% endif %}> {# Un admin no puede quitar moderador a otro admin #}
+                                            Quitar Moderador
+                                        </button>
+                                    {% else %}
+                                        <button type="button"
+                                                onclick="showAdminToggleConfirmation('{{ url_for('main.admin_toggle_moderator_status', user_id=user.id) }}', 'hacer_moderator');"
+                                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
+                                            Hacer Moderador
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+
+                            {# Botón para eliminar usuario - Solo visible y activo para el Owner #}
+                            {% if current_user.is_owner %}
+                                {% if user.id != current_user.id and not user.is_owner %} {# Owner no puede eliminarse a sí mismo ni a otros Owners #}
+                                    <button type="button"
+                                            onclick="showAdminToggleConfirmation('{{ url_for('main.admin_delete_user', user_id=user.id) }}', 'eliminar_usuario');"
+                                            class="bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
+                                        Eliminar Usuario
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            {# Si no es admin ni moderador, se muestra "Solo vista" #}
+                            <span class="text-gray-500 text-sm italic">Solo vista</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-center text-xl mt-12">No hay usuarios registrados en el sistema.</p>
+    {% endif %}
+
+    <p class="mt-10 text-gray-400 text-sm">
+        <a href="{{ url_for('main.index') }}" class="text-blue-400 hover:underline">Volver al Dashboard</a>
+    </p>
+</div>
+
+<script>
+    // Función para mostrar el modal de confirmación para cambiar el estado de administrador/moderador
+    function showAdminToggleConfirmation(toggleUrl, actionType) {
+        let message = '';
+        if (actionType === 'quitar_admin') {
+            message = '¿Estás seguro de que quieres QUITAR los permisos de ADMINISTRADOR a este usuario?';
+        } else if (actionType === 'hacer_admin') {
+            message = '¿Estás seguro de que quieres HACER ADMINISTRADOR a este usuario?';
+        } else if (actionType === 'quitar_moderator') {
+            message = '¿Estás seguro de que quieres QUITAR los permisos de MODERADOR a este usuario?';
+        } else if (actionType === 'hacer_moderator') {
+            message = '¿Estás seguro de que quieres HACER MODERADOR a este usuario?';
+        } else if (actionType === 'eliminar_usuario') {
+            message = '¿Estás seguro de que quieres ELIMINAR este usuario y TODOS sus registros? Esta acción es IRREVERSIBLE.';
+        }
+
+        showConfirmationModal(message, function(confirmed) {
+            if (confirmed) {
+                // Crear un formulario dinámicamente para enviar una solicitud POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = toggleUrl;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

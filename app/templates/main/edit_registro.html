@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Registro{% endblock %}
+
+{% block content %}
+<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700 max-w-md mx-auto">
+    <h1 class="text-4xl font-bold mb-6 text-white">Editar Registro de Horas Extra</h1>
+    <p class="text-lg mb-8 text-gray-300">Modifica los detalles de este registro.</p>
+
+    <form method="POST" action="{{ url_for('main.edit_registro', registro_id=registro_id) }}" class="text-left">
+        {{ form.csrf_token }} {# Asegúrate de incluir el token CSRF para seguridad #}
+
+        <div class="mb-6">
+            <label for="{{ form.fecha.id }}" class="block text-gray-300 text-sm font-bold mb-2">{{ form.fecha.label }}:</label>
+            {{ form.fecha(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", type="date") }}
+            {% for error in form.fecha.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.horas.id }}" class="block text-gray-300 text-sm font-bold mb-2">{{ form.horas.label }}:</label>
+            {{ form.horas(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", type="number", min="0.1", max="24", placeholder="Ej: 8") }}
+            {% for error in form.horas.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.tipo.id }}" class="block text-gray-300 text-sm font-bold mb-2">{{ form.tipo.label }}:</label>
+            {{ form.tipo(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200") }}
+            {% for error in form.tipo.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.observacion.id }}" class="block text-gray-300 text-sm font-bold mb-2">{{ form.observacion.label }}:</label>
+            {{ form.observacion(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200 resize-none", rows="3", placeholder="Ej: Reunión de proyecto, tarea urgente") }}
+            {% for error in form.observacion.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="mt-8 text-center flex justify-center gap-4">
+            <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-10 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+                Guardar Cambios
+            </button>
+            <a href="{{ url_for('main.historial') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-10 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl flex items-center justify-center">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

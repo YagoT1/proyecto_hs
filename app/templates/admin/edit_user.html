@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700 max-w-md mx-auto">
+    <h1 class="text-4xl font-bold mb-6 text-white">Editar Usuario: {{ user.username }}</h1>
+    <p class="text-lg mb-8 text-gray-300">Modifica la información de la cuenta de este usuario.</p>
+
+    <form method="POST" action="{{ url_for('main.admin_edit_user', user_id=user.id) }}" class="text-left">
+        {{ form.csrf_token }}
+
+        <div class="mb-6">
+            <label for="{{ form.username.id }}" class="block text-gray-300 text-sm font-bold mb-2">Nombre de Usuario:</label>
+            {{ form.username(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200") }}
+            {% for error in form.username.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.email.id }}" class="block text-gray-300 text-sm font-bold mb-2">Correo Electrónico:</label>
+            {{ form.email(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200") }}
+            {% for error in form.email.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="mt-8 text-center">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+                Guardar Cambios
+            </button>
+        </div>
+    </form>
+
+    <p class="mt-8 text-gray-400 text-sm">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="text-blue-400 hover:underline">Volver al Panel de Administración</a>
+    </p>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Verificar Acceso a Recibos{% endblock %}
+
+{% block content %}
+<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700 max-w-md mx-auto">
+    <h1 class="text-4xl font-bold mb-6 text-white">Verificar Acceso a Recibos</h1>
+    <p class="text-lg mb-8 text-gray-300">Por favor, ingresa tu legajo (nombre de usuario) y contraseña para acceder a tus recibos de sueldo.</p>
+
+    <form method="POST" action="{{ url_for('main.verificar_recibos') }}" class="text-left">
+        {{ form.csrf_token }} {# Token CSRF para seguridad #}
+
+        <div class="mb-6">
+            <label for="{{ form.legajo.id }}" class="block text-gray-300 text-sm font-bold mb-2">{{ form.legajo.label }}:</label>
+            {{ form.legajo(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", placeholder="Tu legajo o nombre de usuario") }}
+            {% for error in form.legajo.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.password.id }}" class="block text-gray-300 text-sm font-bold mb-2">{{ form.password.label }}:</label>
+            {{ form.password(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", placeholder="Tu contraseña") }}
+            {% for error in form.password.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        {# Nueva sección para "Recordarme" #}
+        <div class="mb-6 flex items-center">
+            <input type="checkbox" id="remember_me" name="remember_me"
+                   class="form-checkbox h-5 w-5 text-blue-600 rounded-md focus:ring-blue-500 border-gray-500 bg-gray-200 cursor-pointer">
+            <label for="remember_me" class="ml-2 text-gray-300 text-base cursor-pointer">Recordarme</label>
+        </div>
+
+        <div class="mt-8 text-center">
+            <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-10 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+                {{ form.submit.label }}
+            </button>
+        </div>
+    </form>
+
+    <p class="mt-10 text-gray-400 text-sm">
+        <a href="{{ url_for('main.index') }}" class="text-blue-400 hover:underline">Volver al Dashboard</a>
+    </p>
+</div>
+{% endblock %}

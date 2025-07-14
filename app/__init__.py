@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,11 +11,12 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
 
-    # Crear carpeta instance si no existe
+    # Crear carpeta instance si no existe (esto sigue siendo útil para desarrollo local si se usa SQLite)
     instance_path = os.path.join(app.root_path, 'instance')
     if not os.path.exists(instance_path):
         os.makedirs(instance_path)
@@ -22,27 +24,19 @@ def create_app():
     # Configuración básica
     app.secret_key = os.getenv("SECRET_KEY", "clave_segura_por_defecto")
 
-    # Ruta absoluta para la base de datos SQLite dentro de instance
-    db_path = os.getenv("DATABASE_URL")
-    if not db_path:
-        # Si no está en .env, usar ruta por defecto
-        db_path = f"sqlite:///{os.path.join(instance_path, 'users.db')}"
-    else:
-        # Si viene con sqlite:/// relativo, convertirlo a absoluto para evitar problemas
-        if db_path.startswith("sqlite:///"):
-            relative_path = db_path.replace("sqlite:///", "")
-            abs_path = os.path.join(app.root_path, relative_path)
-            db_path = f"sqlite:///{abs_path}"
-
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_path
+    # *** CAMBIO CLAVE AQUÍ: Usar DATABASE_URL para la conexión a la base de datos ***
+    # Render automáticamente inyectará la DATABASE_URL de PostgreSQL como una variable de entorno.
+    # Para desarrollo local, puedes poner tu cadena de conexión SQLite o PostgreSQL en un archivo .env
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(instance_path, 'users.db')}")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Inicializar extensiones con la app
     db.init_app(app)
     login_manager.init_app(app)
+    migrate.init_app(app, db)
 
     # Importar modelos aquí para evitar errores de importación circular
-    from app.models import User
+    from app.models import User, Registro, Recibo # Asegúrate de importar todos tus modelos
 
     # Cargar usuario para Flask-Login
     @login_manager.user_loader
@@ -57,3 +51,4 @@ def create_app():
     app.register_blueprint(main_bp)
 
     return app
+

@@ -1,47 +1,69 @@
-{# templates/index.html #}
 {% extends "base.html" %}
-{% block content %}
-    <div class="container mt-4">
-        <h1>Bienvenido, {{ current_user.username }}!</h1>
-        <p>Este es tu dashboard. Desde aquí puedes gestionar tus horas extra.</p>
 
-        <div class="row">
-            <div class="col-md-6">
-                <h2>Registrar Nuevas Horas</h2>
-                <a href="{{ url_for('main.registrar_horas') }}" class="btn btn-primary">Registrar Horas Ahora</a>
+{% block title %}Bienvenido - Horas Extra{% endblock %}
+
+{% block content %}
+<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700">
+    <h1 class="text-5xl font-extrabold mb-4 text-white leading-tight">¡Bienvenido, <span class="text-blue-400">{{ current_user.username }}</span>!</h1>
+    <p class="text-xl mb-10 text-gray-300">
+        Este es tu tablero principal. Desde aquí puedes gestionar tus horas extra de manera eficiente.
+    </p>
+
+    <!-- Nueva sección para mostrar el total de horas -->
+    <div class="mb-10 p-8 bg-blue-900 rounded-xl shadow-lg border border-blue-700 flex items-center justify-center flex-col md:flex-row gap-6">
+        <div class="text-white">
+            <p class="text-2xl font-semibold mb-2">Total de Horas Extra Registradas:</p>
+            <p class="text-6xl font-extrabold text-blue-300">{{ total_horas_registradas }} <span class="text-4xl">hs</span></p>
+        </div>
+        <div class="text-gray-300 text-lg max-w-md">
+            <p>Este es el total acumulado de todas las horas extra que has registrado hasta la fecha.</p>
+            <p class="mt-2">Puedes ver el detalle en tu historial.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
+        <!-- Sección de Registro de Horas (Dashboard Link) -->
+        <div class="bg-gray-900 p-8 rounded-xl shadow-lg flex flex-col justify-between border border-gray-700 hover:border-blue-500 transition duration-300 ease-in-out transform hover:-translate-y-1">
+            <div>
+                <h2 class="text-3xl font-bold mb-4 text-white">Registrar Nuevas Horas</h2>
+                <p class="text-gray-400 mb-8">
+                    Ingresa y organiza tus horas extra trabajadas para cualquier día del mes.
+                </p>
             </div>
-            <div class="col-md-6">
-                <h2>Ver Historial</h2>
-                <a href="{{ url_for('main.historial') }}" class="btn btn-info">Ver Mi Historial</a>
-            </div>
+            <a href="{{ url_for('main.registrar_horas') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+                Registrar Horas Ahora
+            </a>
         </div>
 
-        {% if recent_registros %}
-            <h3 class="mt-5">Últimos Registros</h3>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Horas</th>
-                        <th>Tipo</th>
-                        <th>Observación</th>
-                        <th>Fecha Registro</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for reg in recent_registros %}
-                    <tr>
-                        <td>{{ reg.fecha.strftime('%d-%m-%Y') }}</td>
-                        <td>{{ reg.horas }}</td>
-                        <td>{{ reg.tipo }}</td>
-                        <td>{{ reg.observacion | default('N/A', true) }}</td>
-                        <td>{{ reg.timestamp.strftime('%d-%m-%Y %H:%M') }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="mt-5">No tienes registros recientes. ¡Empieza a registrar tus horas!</p>
-        {% endif %}
+        <!-- Sección de Historial (Dashboard Link) -->
+        <div class="bg-gray-900 p-8 rounded-xl shadow-lg flex flex-col justify-between border border-gray-700 hover:border-green-500 transition duration-300 ease-in-out transform hover:-translate-y-1">
+            <div>
+                <h2 class="text-3xl font-bold mb-4 text-white">Ver Historial</h2>
+                <p class="text-gray-400 mb-8">
+                    Accede a un resumen completo de tus registros anteriores y genera informes detallados.
+                </p>
+            </div>
+            <a href="{{ url_for('main.historial') }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+                Ver Mi Historial
+            </a>
+        </div>
+
+        <!-- Nueva Sección para Recibos de Sueldo -->
+        <div class="bg-gray-900 p-8 rounded-xl shadow-lg flex flex-col justify-between border border-gray-700 hover:border-purple-500 transition duration-300 ease-in-out transform hover:-translate-y-1">
+            <div>
+                <h2 class="text-3xl font-bold mb-4 text-white">Recibos de Sueldo</h2>
+                <p class="text-gray-400 mb-8">
+                    Accede a tus recibos de sueldo subidos. Se requiere verificación adicional.
+                </p>
+            </div>
+            <a href="{{ url_for('main.recibos') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+                Ver Recibos
+            </a>
+        </div>
     </div>
-{% endblock content %}
+
+    <div class="mt-16 text-gray-500 text-sm">
+        <p>¿Necesitas ayuda? Contacta a soporte o revisa la documentación.</p>
+    </div>
+</div>
+{% endblock %}

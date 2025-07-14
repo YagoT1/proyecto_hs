@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Recibos de Sueldo{% endblock %}
+
+{% block content %}
+<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700">
+    <h1 class="text-4xl font-bold mb-6 text-white">Mis Recibos de Sueldo</h1>
+    <p class="text-lg mb-8 text-gray-300">Aquí puedes subir, ver y gestionar tus recibos de sueldo.</p>
+
+    <div class="mb-8 p-6 bg-gray-900 rounded-lg shadow-md border border-gray-700">
+        <h2 class="text-2xl font-semibold mb-4 text-white">Subir Nuevo Recibo</h2>
+        <form method="POST" action="{{ url_for('main.recibos') }}" enctype="multipart/form-data" class="space-y-4">
+            <input type="file" name="recibo_file" accept=".pdf,.png,.jpg,.jpeg" class="block w-full text-sm text-gray-300
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-500 file:text-white
+                hover:file:bg-blue-600 transition duration-300 ease-in-out
+                cursor-pointer">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                Subir Recibo
+            </button>
+        </form>
+    </div>
+
+    <div class="mb-8 p-6 bg-gray-900 rounded-lg shadow-md border border-gray-700">
+        <h2 class="text-2xl font-semibold mb-4 text-white">Acceder a Plataforma Externa</h2>
+        <p class="text-gray-300 mb-4">
+            Si tus recibos se gestionan en una plataforma externa, puedes acceder directamente desde aquí.
+            Es posible que debas iniciar sesión nuevamente allí por motivos de seguridad.
+        </p>
+        <a href="{{ url_for('main.go_to_external_recibos') }}" target="_blank" rel="noopener noreferrer"
+           class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-md inline-flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            Ir a Plataforma Externa
+        </a>
+    </div>
+
+    <h2 class="text-3xl font-semibold mb-6 text-white text-left">Mis Recibos Subidos</h2>
+
+    {% if recibos %}
+    <div class="overflow-x-auto rounded-xl shadow-xl border border-gray-700">
+        <table class="min-w-full bg-gray-900 text-white">
+            <thead class="bg-gray-700">
+                <tr>
+                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider rounded-tl-xl">Nombre del Archivo</th>
+                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">Fecha de Subida</th>
+                    <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider rounded-tr-xl">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recibo in recibos %}
+                <tr class="{% if loop.index % 2 == 0 %}bg-gray-800{% else %}bg-gray-850{% endif %} border-b border-gray-700 hover:bg-gray-700 transition duration-200 ease-in-out">
+                    <td class="py-3.5 px-6 text-base">{{ recibo.filename }}</td>
+                    <td class="py-3.5 px-6 text-base">{{ recibo.upload_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="py-3.5 px-6 text-center flex justify-center items-center space-x-3">
+                        <a href="{{ url_for('main.view_recibo', recibo_id=recibo.id) }}" target="_blank" rel="noopener noreferrer"
+                           class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
+                            Ver
+                        </a>
+                        <button type="button"
+                                onclick="showDeleteConfirmation('{{ url_for('main.delete_recibo', recibo_id=recibo.id) }}', 'recibo');"
+                                class="bg-red-700 hover:bg-red-800 text-white font-bold py-2.5 px-5 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-center text-xl mt-12">Aún no has subido ningún recibo de sueldo.</p>
+    {% endif %}
+
+    <p class="mt-10 text-gray-400 text-sm">
+        <a href="{{ url_for('main.index') }}" class="text-blue-400 hover:underline">Volver al Dashboard</a>
+    </p>
+</div>
+
+<script>
+    // Función para mostrar el modal de confirmación de eliminación
+    function showDeleteConfirmation(deleteUrl, itemType) {
+        let message = '';
+        if (itemType === 'recibo') {
+            message = '¿Estás seguro de que quieres eliminar este recibo? Esta acción no se puede deshacer.';
+        } else {
+            message = '¿Estás seguro de que quieres eliminar este elemento? Esta acción no se puede deshacer.';
+        }
+
+        showConfirmationModal(message, function(confirmed) {
+            if (confirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = deleteUrl;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}
