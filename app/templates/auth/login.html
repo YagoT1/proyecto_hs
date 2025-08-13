@@ -1,49 +1,64 @@
 {% extends "base.html" %}
 
-{% block title %}Iniciar Sesión{% endblock %}
-
 {% block content %}
-<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700 max-w-md mx-auto">
-    <h1 class="text-4xl font-bold mb-6 text-white">Iniciar Sesión</h1>
-    <p class="text-lg mb-8 text-gray-300">Accede a tu cuenta para gestionar tus horas extra.</p>
-
-    <form method="POST" action="{{ url_for('auth.login') }}" class="text-left">
-        {{ form.csrf_token }} {# Asegúrate de que tu formulario de login tenga un token CSRF #}
-
-        <div class="mb-6">
-            <label for="{{ form.username.id }}" class="block text-gray-300 text-sm font-bold mb-2">Nombre de Usuario:</label>
-            {{ form.username(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", placeholder="Tu nombre de usuario") }}
-            {% if form.username.errors %}
-                {% for error in form.username.errors %}
-                    <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div class="mb-6">
-            <label for="{{ form.password.id }}" class="block text-gray-300 text-sm font-bold mb-2">Contraseña:</label>
-            {{ form.password(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", placeholder="Tu contraseña") }}
-            {% if form.password.errors %}
-                {% for error in form.password.errors %}
-                    <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div class="mb-6 flex items-center">
-            {{ form.remember_me(class="form-checkbox h-5 w-5 text-blue-600 rounded-md focus:ring-blue-500 border-gray-500 bg-gray-200 cursor-pointer") }}
-            <label for="{{ form.remember_me.id }}" class="ml-2 text-gray-300 text-base cursor-pointer">Recordarme</label>
-        </div>
-
-        <div class="mt-8 text-center">
-            <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-10 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+<div class="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-gray-800 p-10 rounded-xl shadow-lg">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
                 Iniciar Sesión
-            </button>
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-400">
+                O <a href="{{ url_for('auth.register') }}" class="font-medium text-blue-500 hover:text-blue-400">regístrate para una nueva cuenta</a>
+            </p>
         </div>
-    </form>
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            {{ form.csrf_token }}
+            
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="{{ form.email.id }}" class="sr-only">Email</label>
+                    {{ form.email(class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 text-white bg-gray-700 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Email") }}
+                    {% for error in form.email.errors %}
+                        <span class="text-red-500 text-xs italic">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.password.id }}" class="sr-only">Contraseña</label>
+                    {{ form.password(class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 text-white bg-gray-700 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Contraseña") }}
+                    {% for error in form.password.errors %}
+                        <span class="text-red-500 text-xs italic">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
 
-    <p class="mt-8 text-gray-400 text-sm">
-        ¿No tienes una cuenta? <a href="{{ url_for('auth.register') }}" class="text-blue-400 hover:underline">Regístrate aquí</a>.
-    </p>
+            <div class="flex items-center justify-between mt-4">
+                <div class="flex items-center">
+                    {{ form.remember_me(class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded") }}
+                    <label for="{{ form.remember_me.id }}" class="ml-2 block text-sm text-gray-300">
+                        Recordarme
+                    </label>
+                </div>
+                <div class="text-sm">
+                    <a href="{{ url_for('auth.reset_request') }}" class="font-medium text-blue-500 hover:text-blue-400">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                {{ form.submit(class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out") }}
+            </div>
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mt-4 p-3 rounded-md text-sm {% if category == 'success' %}bg-green-500 text-white{% elif category == 'error' %}bg-red-500 text-white{% elif category == 'info' %}bg-blue-500 text-white{% else %}bg-gray-500 text-white{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
 </div>
-{% endblock %}
+{% endblock content %}

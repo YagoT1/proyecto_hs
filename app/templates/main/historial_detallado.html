@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 text-gray-100 p-6 flex flex-col items-center">
+    <div class="max-w-4xl w-full bg-gray-800 p-8 rounded-lg shadow-xl mb-8">
+        <h1 class="text-4xl font-extrabold text-center text-blue-400 mb-6">Historial de Horas - {{ current_month_name }} {{ current_year }}</h1>
+        <p class="text-center text-gray-300 mb-8">Aquí están tus registros de horas para el período seleccionado.</p>
+
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mt-4 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="p-3 rounded-md text-sm {% if category == 'success' %}bg-green-500 text-white{% elif category == 'danger' %}bg-red-500 text-white{% elif category == 'info' %}bg-blue-500 text-white{% else %}bg-gray-500 text-white{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if registros %}
+            <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left text-gray-400">
+                    <thead class="text-xs text-gray-100 uppercase bg-gray-700">
+                        <tr>
+                            <th scope="col" class="py-3 px-6">
+                                Fecha
+                            </th>
+                            <th scope="col" class="py-3 px-6">
+                                Horas Trabajadas
+                            </th>
+                            <th scope="col" class="py-3 px-6">
+                                Observación
+                            </th>
+                            <th scope="col" class="py-3 px-6">
+                                Tipo
+                            </th>
+                            <th scope="col" class="py-3 px-6">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registro in registros %}
+                        <tr class="bg-gray-800 border-b border-gray-700 hover:bg-gray-700">
+                            <td class="py-4 px-6 font-medium text-white whitespace-nowrap">
+                                {{ registro.fecha.strftime('%Y-%m-%d') }}
+                            </td>
+                            <td class="py-4 px-6">
+                                {{ registro.horas | round(2) }}
+                            </td>
+                            <td class="py-4 px-6">
+                                {{ registro.observacion or 'N/A' }}
+                            </td>
+                            <td class="py-4 px-6">
+                                {{ registro.tipo.capitalize() if registro.tipo else 'Normal' }}
+                            </td>
+                            <td class="py-4 px-6 flex flex-wrap gap-2">
+                                <a href="{{ url_for('main.editar_registro', registro_id=registro.id) }}" class="text-blue-400 hover:text-blue-300 flex items-center justify-center">
+                                    <i class="fas fa-edit mr-1"></i> Editar
+                                </a>
+                                <form action="{{ url_for('main.eliminar_registro', registro_id=registro.id) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este registro?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="text-red-400 hover:text-red-300 bg-transparent border-none p-0 cursor-pointer flex items-center justify-center">
+                                        <i class="fas fa-trash-alt mr-1"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center text-gray-400 text-lg">No hay registros de horas para mostrar en este período.</p>
+        {% endif %}
+
+        <div class="mt-8 text-center flex flex-wrap justify-center gap-4">
+            <a href="{{ url_for('main.registrar_horas') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-plus mr-2"></i> Registrar Nuevas Horas
+            </a>
+            
+            <a href="{{ url_for('main.generate_historial_pdf_by_month', year=selected_year, month=selected_month) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <i class="fas fa-file-pdf mr-2"></i> Generar PDF ({{ current_month_name }} {{ current_year }})
+            </a>
+            
+            <a href="{{ url_for('main.ver_historial') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                <i class="fas fa-arrow-left mr-2"></i> Volver al Selector de Historial
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

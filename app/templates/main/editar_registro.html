@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Registro{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-gray-800 p-10 rounded-xl shadow-lg text-center">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+            Editar Registro de Horas
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-400">
+            Modifica los detalles de este registro de horas.
+        </p>
+
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mt-4 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="p-3 rounded-md text-sm {% if category == 'success' %}bg-green-500 text-white{% elif category == 'error' or category == 'danger' %}bg-red-500 text-white{% elif category == 'info' %}bg-blue-500 text-white{% else %}bg-gray-500 text-white{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('main.editar_registro', registro_id=registro.id) }}" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}"> {# ¡CORREGIDO AQUÍ! Sin paréntesis #}
+
+            <div>
+                <label for="fecha" class="block text-sm font-medium text-gray-300 text-left">Fecha:</label>
+                <input type="date" id="fecha" name="fecha" value="{{ registro.fecha.strftime('%Y-%m-%d') }}" required
+                       class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+
+            <div>
+                <label for="horas" class="block text-sm font-medium text-gray-300 text-left">Horas Trabajadas:</label>
+                <input type="number" step="0.1" id="horas" name="horas" value="{{ '%.1f' | format(registro.horas) }}" required
+                       class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+
+            <div>
+                <label for="observacion" class="block text-sm font-medium text-gray-300 text-left">Observación (Opcional):</label>
+                <textarea id="observacion" name="observacion" rows="3"
+                          class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ registro.observacion or '' }}</textarea>
+            </div>
+
+            <div class="flex justify-center space-x-4 mt-6">
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    Actualizar Registro
+                </button>
+                <a href="{{ url_for('main.ver_historial') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,64 @@
+<div id="error-report-section" class="bg-gray-800 p-6 rounded-lg shadow-lg mt-8 border border-gray-700 text-gray-200" style="display: none;">
+    <h3 class="text-xl font-semibold text-blue-400 mb-4 text-center">¿Encontraste un error? ¡Ayúdanos a mejorarlo!</h3>
+    <p class="text-gray-400 mb-6 text-center">Por favor, describe lo que estabas haciendo cuando ocurrió este problema.</p>
+
+    <form method="POST" action="{{ url_for('main.report_error') }}" class="space-y-4">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.email.label(class="block text-sm font-medium text-gray-300") }}
+            {{ form.email(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm", placeholder="ej. tu@ejemplo.com") }}
+            {% for error in form.email.errors %}
+                <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.subject.label(class="block text-sm font-medium text-gray-300") }}
+            {{ form.subject(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm", placeholder="ej. Error al registrar horas") }}
+            {% for error in form.subject.errors %}
+                <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.message.label(class="block text-sm font-medium text-gray-300") }}
+            {{ form.message(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-32", rows="5", placeholder="Describe el error que encontraste, qué estabas haciendo, y si es posible, la hora.") }}
+            {% for error in form.message.errors %}
+                <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="flex justify-center space-x-4">
+            <button type="button" id="hide-report-form" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                Cancelar
+            </button>
+            {{ form.submit(class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out") }}
+        </div>
+    </form>
+</div>
+
+<script>
+    // Script para manejar la visibilidad del formulario de reporte de errores
+    document.addEventListener('DOMContentLoaded', function() {
+        const reportButton = document.getElementById('show-report-form');
+        const hideButton = document.getElementById('hide-report-form');
+        const reportSection = document.getElementById('error-report-section');
+
+        if (reportButton && reportSection) {
+            reportButton.addEventListener('click', function() {
+                reportSection.style.display = 'block'; // Mostrar el formulario
+                reportButton.style.display = 'none'; // Ocultar el botón de mostrar
+            });
+        }
+
+        if (hideButton && reportSection) {
+            hideButton.addEventListener('click', function() {
+                reportSection.style.display = 'none'; // Ocultar el formulario
+                if (reportButton) {
+                    reportButton.style.display = 'inline-block'; // Mostrar el botón de mostrar
+                }
+            });
+        }
+    });
+</script>

@@ -3,22 +3,16 @@
 {% block title %}Registrarse{% endblock %}
 
 {% block content %}
-{# ERROR: La variable 'form' es indefinida. Esto ocurre porque la función de Flask que renderiza esta plantilla (probablemente en auth.py) no está pasando un objeto 'form' a la plantilla.
-   Asegúrate de que tu función de registro en Python (ej: @auth_bp.route('/register')) tenga una línea como:
-   'form = RegistrationForm()'
-   y que la línea de renderizado sea:
-   'return render_template('auth/register.html', form=form)'
-#}
 <div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700 max-w-md mx-auto">
     <h1 class="text-4xl font-bold mb-6 text-white">Registrarse</h1>
-    <p class="text-lg mb-8 text-gray-300">Crea una nueva cuenta para empezar a gestionar tus horas extra.</p>
+    <p class="text-lg mb-8 text-gray-300">Crea una cuenta para empezar a gestionar tus horas extra.</p>
 
     <form method="POST" action="{{ url_for('auth.register') }}" class="text-left">
-        {{ form.csrf_token }} {# Asegúrate de que tu formulario de registro tenga un token CSRF #}
+        {{ form.csrf_token }}
 
         <div class="mb-6">
             <label for="{{ form.username.id }}" class="block text-gray-300 text-sm font-bold mb-2">Nombre de Usuario:</label>
-            {{ form.username(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", placeholder="Elige un nombre de usuario") }}
+            {{ form.username(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", placeholder="Tu nombre de usuario") }}
             {% if form.username.errors %}
                 {% for error in form.username.errors %}
                     <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
@@ -38,22 +32,54 @@
 
         <div class="mb-6">
             <label for="{{ form.password.id }}" class="block text-gray-300 text-sm font-bold mb-2">Contraseña:</label>
-            {{ form.password(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", placeholder="Crea una contraseña") }}
-            {% if form.password.errors %}
-                {% for error in form.password.errors %}
-                    <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
+            <div class="relative">
+                {# ¡IMPORTANTE! Asegúrate de que NO haya id="password" aquí dentro de los paréntesis. #}
+                {{ form.password(
+                    class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200 pr-10",
+                    placeholder="Tu contraseña"
+                ) }}
+                {% if form.password.errors %}
+                    {% for error in form.password.errors %}
+                        <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+                {# Icono de Ojo (para mostrar la contraseña). El ID debe ser único y coincidir con el script en base.html #}
+                <svg id="showPasswordIcon_password" class="password-toggle-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                {# Icono de Ojo Tachado (para ocultar la contraseña). El ID debe ser único y coincidir con el script en base.html #}
+                <svg id="hidePasswordIcon_password" class="password-toggle-icon w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .47 0 .929.074 1.371.214m6.892 6.892a9.002 9.002 0 01-1.371 1.371m0 0L21 21M9 3l3.657 3.657m-1.59 1.591L11.5 10.5M12 12l.042.042M14.5 14.5l.042.042M16.5 16.5l.042.042M18.5 18.5l.042.042M21 21l-1.59-1.59"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </div>
         </div>
 
         <div class="mb-6">
             <label for="{{ form.confirm_password.id }}" class="block text-gray-300 text-sm font-bold mb-2">Confirmar Contraseña:</label>
-            {{ form.confirm_password(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200", placeholder="Confirma tu contraseña") }}
-            {% if form.confirm_password.errors %}
-                {% for error in form.confirm_password.errors %}
-                    <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
+            <div class="relative">
+                {# ¡IMPORTANTE! Asegúrate de que NO haya id="confirm_password" aquí dentro de los paréntesis. #}
+                {{ form.confirm_password(
+                    class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200 pr-10",
+                    placeholder="Confirma tu contraseña"
+                ) }}
+                {% if form.confirm_password.errors %}
+                    {% for error in form.confirm_password.errors %}
+                        <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+                {# Icono de Ojo (para mostrar la contraseña). El ID debe ser único y coincidir con el script en base.html #}
+                <svg id="showPasswordIcon_confirm_password" class="password-toggle-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                {# Icono de Ojo Tachado (para ocultar la contraseña). El ID debe ser único y coincidir con el script en base.html #}
+                <svg id="hidePasswordIcon_confirm_password" class="password-toggle-icon w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .47 0 .929.074 1.371.214m6.892 6.892a9.002 9.002 0 01-1.371 1.371m0 0L21 21M9 3l3.657 3.657m-1.59 1.591L11.5 10.5M12 12l.042.042M14.5 14.5l.042.042M16.5 16.5l.042.042M18.5 18.5l.042.042M21 21l-1.59-1.59"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </div>
         </div>
 
         <div class="mt-8 text-center">
@@ -67,4 +93,4 @@
         ¿Ya tienes una cuenta? <a href="{{ url_for('auth.login') }}" class="text-blue-400 hover:underline">Inicia sesión aquí</a>.
     </p>
 </div>
-{% endblock %}
+{% endblock content %}

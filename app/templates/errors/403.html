@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Error 403 - Prohibido - ¡Juego de Rompecabezas!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fuentes personalizadas */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            overflow-y: auto; /* Permite desplazamiento vertical */
+            overflow-x: hidden; /* Evita barra de desplazamiento horizontal */
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: #2d3748;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+            margin-bottom: 1.5rem;
+            max-width: 90%;
+            width: 500px;
+        }
+
+        .code {
+            font-size: 5rem;
+            color: #f56565; /* Rojo para prohibido */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .message {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            color: #cbd5e0;
+        }
+
+        .btn {
+            text-decoration: none;
+            background-color: #4299e1;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos del juego de rompecabezas */
+        #puzzle-board {
+            display: grid;
+            gap: 2px; /* Espacio entre las piezas */
+            border: 2px solid #4A5568;
+            border-radius: 8px;
+            overflow: hidden; /* Para las esquinas redondeadas */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            aspect-ratio: 1/1; /* Mantiene el tablero cuadrado */
+            width: 100%; /* Ocupa el ancho completo de su contenedor */
+            max-width: 400px; /* Tamaño máximo del tablero */
+            margin-top: 1.5rem; /* Espacio superior para separar del contenedor 403 */
+            margin-bottom: 2rem; /* Espacio inferior */
+        }
+
+        .puzzle-piece {
+            background-size: 400% 400%; /* 4x4 grid - ajustado para la imagen completa */
+            background-repeat: no-repeat;
+            border: 1px solid rgba(0,0,0,0.1);
+            cursor: grab; /* Cursor para indicar que se puede arrastrar */
+            transition: transform 0.1s ease-out; /* Animación de arrastre */
+        }
+
+        .puzzle-piece.dragging {
+            opacity: 0.7;
+            transform: scale(1.05);
+            z-index: 20;
+            cursor: grabbing; /* Cursor cuando se está arrastrando */
+        }
+
+        #game-overlay {
+            background-color: rgba(17, 24, 39, 0.95);
+        }
+
+        /* Estilos para el formulario de reporte de errores (directamente incrustados) */
+        #error-report-section {
+            background-color: #2d3748; /* Fondo oscuro */
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
+            max-width: 500px;
+            width: 90%;
+            color: #e2e8f0; /* Texto claro */
+            display: none; /* Oculto por defecto */
+        }
+        #error-report-section h3 {
+            color: #63B3ED; /* Azul claro para el título del formulario */
+        }
+        #error-report-section p {
+            color: #cbd5e0; /* Gris claro para el texto del formulario */
+        }
+        #error-report-section input[type="text"],
+        #error-report-section input[type="email"],
+        #error-report-section textarea {
+            background-color: #4A5568; /* Fondo de inputs más oscuro */
+            border-color: #4A5568;
+            color: #e2e8f0; /* Texto de input claro */
+        }
+        #error-report-section input[type="text"]:focus,
+        #error-report-section input[type="email"]:focus,
+        #error-report-section textarea:focus {
+            border-color: #63B3ED; /* Borde de enfoque azul claro */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5); /* Sombra de enfoque azul claro */
+        }
+        #error-report-section .submit-btn {
+            background-color: #4299e1; /* Azul para el botón de enviar */
+            color: white;
+        }
+        #error-report-section .submit-btn:hover {
+            background-color: #3182ce;
+        }
+        #error-report-section .cancel-btn {
+            background-color: #718096; /* Gris para el botón de cancelar */
+            color: white;
+        }
+        #error-report-section .cancel-btn:hover {
+            background-color: #5A67D8;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-100 p-4">
+
+    <!-- Contenedor principal del mensaje 403 -->
+    <div class="container">
+        <!-- Icono SVG de prohibido -->
+        <svg class="w-24 h-24 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+        </svg>
+
+        <div class="code">403</div>
+        <div class="message">¡Acceso prohibido!</div>
+        <div class="message">No tienes permiso para acceder a esta página. Parece que estás en una zona restringida. ¿Por qué no te relajas con un juego de rompecabezas mientras tanto?</div>
+        <a href="/" class="btn">Volver al inicio</a>
+        <button id="show-report-form" class="btn bg-red-500 hover:bg-red-600 ml-4">Reportar Error</button>
+    </div>
+
+    <!-- Contenedor del juego de rompecabezas -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-xl flex flex-col items-center justify-center relative mt-8">
+        <h2 class="text-2xl font-bold text-blue-400 mb-4">Juego de Rompecabezas</h2>
+
+        <!-- Información del juego: Movimientos -->
+        <div class="flex justify-between w-full px-4 mb-4 text-lg font-semibold">
+            <span>Movimientos: <span id="moves" class="text-yellow-400">0</span></span>
+        </div>
+
+        <!-- Área de juego del rompecabezas -->
+        <div id="puzzle-board">
+            <!-- Las piezas se generarán aquí con JavaScript -->
+        </div>
+
+        <!-- Botón para verificar la solución (opcional, el usuario puede pedirlo) -->
+        <button id="check-solution-button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg mt-4 hidden">
+            Verificar Solución
+        </button>
+
+        <!-- Pantalla de inicio/fin de juego -->
+        <div id="game-overlay" class="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center rounded-lg text-center p-4 transition-opacity duration-300 ease-in-out">
+            <h3 id="overlay-title" class="text-3xl font-bold text-white mb-4">¡Bienvenido al Rompecabezas!</h3>
+            <p id="overlay-message" class="text-lg text-gray-300 mb-6">Reorganiza las piezas para formar la imagen.</p>
+            <button id="start-restart-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                Empezar Juego
+            </button>
+        </div>
+    </div>
+
+    <!-- Formulario de reporte de errores (incrustado directamente) -->
+    <div id="error-report-section">
+        <h3 class="text-xl font-semibold text-blue-400 mb-4 text-center">¿Encontraste un error? ¡Ayúdanos a mejorarlo!</h3>
+        <p class="text-gray-400 mb-6 text-center">Por favor, describe lo que estabas haciendo cuando ocurrió este problema.</p>
+
+        <form method="POST" action="{{ url_for('main.report_error') }}" class="space-y-4">
+            {# Flask pasará el objeto 'form' a esta plantilla.
+               Necesitamos renderizar los campos usando la sintaxis de Jinja2 para WTForms. #}
+            {{ form.hidden_tag() }}
+
+            <div>
+                {{ form.email.label(class="block text-sm font-medium text-gray-300") }}
+                {{ form.email(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm", placeholder="ej. tu@ejemplo.com", id="error-email-input") }}
+                {% for error in form.email.errors %}
+                    <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                {{ form.subject.label(class="block text-sm font-medium text-gray-300") }}
+                {{ form.subject(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm", placeholder="ej. Error al registrar horas") }}
+                {% for error in form.subject.errors %}
+                    <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                {{ form.message.label(class="block text-sm font-medium text-gray-300") }}
+                {{ form.message(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-32", rows="5", placeholder="Describe el error que encontraste, qué estabas haciendo, y si es posible, la hora.") }}
+                {% for error in form.message.errors %}
+                    <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="hide-report-form" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                    Cancelar
+                </button>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    Enviar Reporte
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const puzzleBoard = document.getElementById('puzzle-board');
+        const movesDisplay = document.getElementById('moves');
+        const gameOverlay = document.getElementById('game-overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayMessage = document.getElementById('overlay-message');
+        const startRestartButton = document.getElementById('start-restart-button');
+        const checkSolutionButton = document.getElementById('check-solution-button');
+
+        const PUZZLE_IMAGE_URL = 'https://picsum.photos/id/1018/800/800';
+        const GRID_SIZE = 4;
+        const NUM_PIECES = GRID_SIZE * GRID_SIZE;
+
+        let pieces = [];
+        let moves = 0;
+        let draggingPiece = null;
+        let dragStartX, dragStartY;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createPieces() {
+            puzzleBoard.innerHTML = '';
+            pieces = [];
+            moves = 0;
+            movesDisplay.textContent = moves;
+
+            let order = Array.from({ length: NUM_PIECES }, (_, i) => i);
+            shuffle(order);
+
+            puzzleBoard.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+            puzzleBoard.style.gridTemplateRows = `repeat(${GRID_SIZE}, 1fr)`;
+
+            for (let i = 0; i < NUM_PIECES; i++) {
+                const piece = document.createElement('div');
+                piece.classList.add('puzzle-piece');
+                piece.dataset.originalIndex = i;
+                piece.dataset.currentIndex = order[i];
+
+                const row = Math.floor(i / GRID_SIZE);
+                const col = i % GRID_SIZE;
+                const bgX = (col / (GRID_SIZE - 1)) * 100;
+                const bgY = (row / (GRID_SIZE - 1)) * 100;
+
+                piece.style.backgroundImage = `url("${PUZZLE_IMAGE_URL}")`;
+                piece.style.backgroundPosition = `${bgX}% ${bgY}%`;
+                piece.style.backgroundSize = `${GRID_SIZE * 100}% ${GRID_SIZE * 100}%`;
+
+                piece.style.gridArea = `${Math.floor(order[i] / GRID_SIZE) + 1} / ${(order[i] % GRID_SIZE) + 1}`;
+
+                puzzleBoard.appendChild(piece);
+                pieces.push(piece);
+            }
+
+            addDragListeners();
+        }
+
+        function addDragListeners() {
+            pieces.forEach((piece) => {
+                piece.addEventListener('mousedown', startDrag);
+                piece.addEventListener('touchstart', startDrag, { passive: false });
+            });
+        }
+
+        function startDrag(e) {
+            if (e.button === 2) return;
+
+            draggingPiece = this;
+            draggingPiece.classList.add('dragging');
+
+            const rect = draggingPiece.getBoundingClientRect();
+            dragStartX = e.clientX || e.touches[0].clientX;
+            dragStartY = e.clientY || e.touches[0].clientY;
+
+            if (e.type === 'touchstart') e.preventDefault();
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function drag(e) {
+            if (!draggingPiece) return;
+
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+
+            const dx = clientX - dragStartX;
+            const dy = clientY - dragStartY;
+
+            draggingPiece.style.transform = `translate(${dx}px, ${dy}px) scale(1.05)`;
+
+            if (e.type === 'touchmove') e.preventDefault();
+        }
+
+        function endDrag(e) {
+            if (!draggingPiece) return;
+
+            draggingPiece.classList.remove('dragging');
+            draggingPiece.style.transform = '';
+
+            const targetPiece = getTargetPiece(e);
+
+            if (targetPiece && targetPiece !== draggingPiece) {
+                swapPieces(draggingPiece, targetPiece);
+                moves++;
+                movesDisplay.textContent = moves;
+            }
+
+            draggingPiece = null;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchend', endDrag);
+        }
+
+        function getTargetPiece(e) {
+            draggingPiece.style.display = 'none';
+            const clientX = e.clientX || e.changedTouches[0].clientX;
+            const clientY = e.clientY || e.changedTouches[0].clientY;
+            const targetElement = document.elementFromPoint(clientX, clientY);
+            draggingPiece.style.display = 'block';
+
+            if (targetElement && targetElement.classList.contains('puzzle-piece')) {
+                return targetElement;
+            }
+            return null;
+        }
+
+        function swapPieces(piece1, piece2) {
+            const index1 = pieces.indexOf(piece1);
+            const index2 = pieces.indexOf(piece2);
+
+            const parent = puzzleBoard;
+            const ref1 = pieces[index1];
+            const ref2 = pieces[index2];
+
+            if (index1 < index2) {
+                parent.insertBefore(ref2, ref1);
+                parent.insertBefore(ref1, ref2.nextSibling);
+            } else {
+                parent.insertBefore(ref1, ref2);
+                parent.insertBefore(ref2, ref1.nextSibling);
+            }
+
+            [pieces[index1], pieces[index2]] = [pieces[index2], pieces[index1]];
+
+            pieces.forEach((p, i) => {
+                p.style.gridArea = `${Math.floor(i / GRID_SIZE) + 1} / ${(i % GRID_SIZE) + 1}`;
+                p.dataset.currentIndex = i;
+            });
+        }
+
+        function checkWin() {
+            let solved = true;
+            for (let i = 0; i < NUM_PIECES; i++) {
+                if (parseInt(pieces[i].dataset.originalIndex) !== parseInt(pieces[i].dataset.currentIndex)) {
+                    solved = false;
+                    break;
+                }
+            }
+            if (solved) {
+                endGame();
+            } else {
+                // Opcional: Mostrar un mensaje de que aún no está resuelto
+                console.log("El rompecabezas aún no está resuelto.");
+            }
+        }
+
+        function startGame() {
+            gameOverlay.classList.add('opacity-0', 'pointer-events-none');
+            createPieces();
+            checkSolutionButton.classList.remove('hidden');
+        }
+
+        function endGame() {
+            overlayTitle.textContent = '¡Rompecabezas Resuelto!';
+            overlayMessage.textContent = `¡Lo lograste en ${moves} movimientos!`;
+            startRestartButton.textContent = 'Jugar de Nuevo';
+            gameOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            checkSolutionButton.classList.add('hidden');
+        }
+
+        startRestartButton.addEventListener('click', startGame);
+        checkSolutionButton.addEventListener('click', checkWin);
+
+        window.onload = () => {
+            gameOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        };
+
+        // --- Script para manejar la visibilidad del formulario de reporte de errores ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const reportButton = document.getElementById('show-report-form');
+            const hideButton = document.getElementById('hide-report-form');
+            const reportSection = document.getElementById('error-report-section');
+            const firstInput = document.getElementById('error-email-input');
+
+            if (reportButton && reportSection) {
+                reportButton.addEventListener('click', function() {
+                    reportSection.style.display = 'block'; // Mostrar el formulario
+                    reportButton.style.display = 'none'; // Ocultar el botón de mostrar
+
+                    // Desplazar la vista al formulario
+                    reportSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Enfocar el primer input después de un breve retraso para asegurar que el scroll termine
+                    setTimeout(() => {
+                        if (firstInput) {
+                            firstInput.focus();
+                        }
+                    }, 300); // Pequeño retraso para que el scroll tenga tiempo de completarse
+                });
+            }
+
+            if (hideButton && reportSection) {
+                hideButton.addEventListener('click', function() {
+                    reportSection.style.display = 'none'; // Ocultar el formulario
+                    if (reportButton) {
+                        reportButton.style.display = 'inline-block'; // Mostrar el botón de mostrar
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

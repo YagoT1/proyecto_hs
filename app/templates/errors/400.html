@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lo sentimos :(</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fuentes personalizadas */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            overflow-y: auto; /* Permite desplazamiento vertical */
+            overflow-x: hidden; /* Evita barra de desplazamiento horizontal */
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: #2d3748;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+            margin-bottom: 1.5rem;
+            max-width: 90%;
+            width: 500px;
+        }
+
+        .code {
+            font-size: 5rem;
+            color: #f6ad55;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .message {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            color: #cbd5e0;
+        }
+
+        .btn {
+            text-decoration: none;
+            background-color: #4299e1;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos para las tarjetas del juego */
+        .card {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.75rem;
+            transition: transform 0.6s;
+        }
+
+        .card-front {
+            background-color: #4A5568;
+            color: #E2E8F0;
+            transform: rotateY(180deg);
+            font-size: 4.5rem;
+        }
+
+        .card-back {
+            background-color: #63B3ED;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 2.5rem;
+            transform: rotateY(0deg);
+        }
+
+        .card.flipped .card-front {
+            transform: rotateY(0deg);
+        }
+
+        .card.flipped .card-back {
+            transform: rotateY(-180deg);
+        }
+
+        .card.matched .card-front,
+        .card.matched .card-back {
+            background-color: #48BB78;
+            color: #FFFFFF;
+            pointer-events: none;
+        }
+
+        .card.matched {
+            animation: match-pulse 0.5s ease-in-out;
+        }
+
+        @keyframes match-pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Estilos para la pantalla de fin de juego */
+        #game-overlay {
+            background-color: rgba(17, 24, 39, 0.95);
+        }
+
+        /* Ajuste para el contenedor del juego para asegurar visibilidad */
+        .game-container-wrapper {
+            background-color: #374151;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            width: 100%;
+            aspect-ratio: 1/1;
+            min-height: 300px;
+            border: 2px dashed #4A5568;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            perspective: 1000px;
+        }
+
+        /* Estilos para el formulario de reporte de errores (directamente incrustados) */
+        #error-report-section {
+            background-color: #2d3748; /* Fondo oscuro */
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
+            max-width: 500px;
+            width: 90%;
+            color: #e2e8f0; /* Texto claro */
+            display: none; /* Oculto por defecto */
+        }
+        #error-report-section h3 {
+            color: #63B3ED; /* Azul claro para el título del formulario */
+        }
+        #error-report-section p {
+            color: #cbd5e0; /* Gris claro para el texto del formulario */
+        }
+        #error-report-section input[type="text"],
+        #error-report-section input[type="email"],
+        #error-report-section textarea {
+            background-color: #4A5568; /* Fondo de inputs más oscuro */
+            border-color: #4A5568;
+            color: #e2e8f0; /* Texto de input claro */
+        }
+        #error-report-section input[type="text"]:focus,
+        #error-report-section input[type="email"]:focus,
+        #error-report-section textarea:focus {
+            border-color: #63B3ED; /* Borde de enfoque azul claro */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5); /* Sombra de enfoque azul claro */
+        }
+        #error-report-section .submit-btn {
+            background-color: #4299e1; /* Azul para el botón de enviar */
+            color: white;
+        }
+        #error-report-section .submit-btn:hover {
+            background-color: #3182ce;
+        }
+        #error-report-section .cancel-btn {
+            background-color: #718096; /* Gris para el botón de cancelar */
+            color: white;
+        }
+        #error-report-section .cancel-btn:hover {
+            background-color: #5A67D8;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-100 p-4">
+
+    <!-- Contenedor principal del mensaje 400 -->
+    <div class="container">
+        <!-- Icono SVG de una solicitud incorrecta -->
+        <svg class="w-24 h-24 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+
+        <div class="code">400</div>
+        <div class="message">¡Solicitud incorrecta!</div>
+        <div class="message">Parece que algo no se envió correctamente. Mientras lo revisamos, ¿qué tal un pequeño desafío de memoria?</div>
+        <a href="/" class="btn">Volver al inicio</a>
+        <button id="show-report-form" class="btn bg-red-500 hover:bg-red-600 ml-4">Reportar Error</button>
+    </div>
+
+    <!-- Contenedor del juego de memoria -->
+    <div class="game-container-wrapper">
+        <h2 class="text-2xl font-bold text-blue-400 mb-4">Juego de Memoria de Emojis</h2>
+
+        <!-- Información del juego: Intentos, Parejas encontradas y Temporizador -->
+        <div class="flex justify-between w-full px-4 mb-4 text-lg font-semibold">
+            <span>Intentos: <span id="attempts" class="text-yellow-400">0</span></span>
+            <span>Parejas: <span id="matches" class="text-green-400">0 / 8</span></span>
+            <span>Tiempo: <span id="timer" class="text-purple-400">00:00</span></span>
+        </div>
+
+        <!-- Área de juego de las tarjetas -->
+        <div id="game-board">
+            <!-- Las tarjetas se generarán aquí con JavaScript -->
+        </div>
+
+        <!-- Pantalla de inicio/fin de juego -->
+        <div id="game-overlay" class="absolute inset-0 flex flex-col items-center justify-center rounded-lg text-center p-4 transition-opacity duration-300 ease-in-out">
+            <h3 id="overlay-title" class="text-3xl font-bold text-white mb-4">¡Bienvenido al Juego de Memoria!</h3>
+            <p id="overlay-message" class="text-lg text-gray-300 mb-6">Encuentra todas las parejas de emojis.</p>
+            <button id="start-restart-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                Empezar Juego
+            </button>
+        </div>
+    </div>
+
+    <!-- Formulario de reporte de errores (incrustado directamente) -->
+    <div id="error-report-section">
+        <h3 class="text-xl font-semibold text-blue-400 mb-4 text-center">¿Encontraste un error? ¡Ayúdanos a mejorarlo!</h3>
+        <p class="text-gray-400 mb-6 text-center">Por favor, describe lo que estabas haciendo cuando ocurrió este problema.</p>
+
+        <form method="POST" action="{{ url_for('main.report_error') }}" class="space-y-4">
+            {{ form.hidden_tag() }}
+
+            <div>
+                <label for="error-email-input" class="block text-sm font-medium text-gray-300">Tu Email (opcional)</label>
+                <input type="email" id="error-email-input" name="email" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="ej. tu@ejemplo.com" value="{{ form.email.data or '' }}">
+                {# Render WTForms errors if any #}
+                {% if form.email.errors %}
+                    {% for error in form.email.errors %}
+                        <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="subject" class="block text-sm font-medium text-gray-300">Asunto del Error</label>
+                <input type="text" id="subject" name="subject" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="ej. Error al registrar horas" value="{{ form.subject.data or '' }}">
+                {% if form.subject.errors %}
+                    {% for error in form.subject.errors %}
+                        <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="message" class="block text-sm font-medium text-gray-300">Descripción Detallada del Error</label>
+                <textarea id="message" name="message" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-32" rows="5" placeholder="Describe el error que encontraste, qué estabas haciendo, y si es posible, la hora.">{{ form.message.data or '' }}</textarea>
+                {% if form.message.errors %}
+                    {% for error in form.message.errors %}
+                        <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="hide-report-form" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                    Cancelar
+                </button>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    Enviar Reporte
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const gameBoard = document.getElementById('game-board');
+        const attemptsDisplay = document.getElementById('attempts');
+        const matchesDisplay = document.getElementById('matches');
+        const timerDisplay = document.getElementById('timer');
+        const gameOverlay = document.getElementById('game-overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayMessage = document.getElementById('overlay-message');
+        const startRestartButton = document.getElementById('start-restart-button');
+
+        const emojiList = [
+            '🍎', '🍊', '🍋', '🍉', '🍇', '🍓', '🍒', '🍑'
+        ];
+
+        let gameCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let attempts = 0;
+        let lockBoard = false;
+
+        let startTime;
+        let elapsedTime = 0;
+        let timerInterval;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const paddedMinutes = String(minutes).padStart(2, '0');
+            const paddedSeconds = String(seconds).padStart(2, '0');
+            return `${paddedMinutes}:${paddedSeconds}`;
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                timerDisplay.textContent = formatTime(elapsedTime);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function createBoard() {
+            gameBoard.innerHTML = '';
+            gameCards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            attempts = 0;
+            lockBoard = false;
+
+            stopTimer();
+            elapsedTime = 0;
+            timerDisplay.textContent = formatTime(elapsedTime);
+
+            const doubledEmojis = [...emojiList, ...emojiList];
+            const shuffledEmojis = shuffle(doubledEmojis);
+
+            shuffledEmojis.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.emoji = emoji;
+                card.dataset.id = index;
+
+                card.innerHTML = `
+                    <div class="card-front bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center absolute w-full h-full">
+                        ${emoji}
+                    </div>
+                    <div class="card-back bg-blue-400 text-white text-2xl font-bold rounded-lg flex items-center justify-center absolute w-full h-full">
+                        ?
+                    </div>
+                `;
+                card.addEventListener('click', handleCardClick);
+                gameBoard.appendChild(card);
+                gameCards.push(card);
+            });
+            updateInfo();
+        }
+
+        function handleCardClick(event) {
+            const clickedCard = event.currentTarget;
+
+            if (lockBoard || clickedCard === flippedCards[0] || clickedCard.classList.contains('flipped') || clickedCard.classList.contains('matched')) {
+                return;
+            }
+
+            clickedCard.classList.add('flipped');
+            flippedCards.push(clickedCard);
+
+            if (flippedCards.length === 2) {
+                attempts++;
+                updateInfo();
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            const isMatch = card1.dataset.emoji === card2.dataset.emoji;
+
+            if (isMatch) {
+                disableCards();
+            } else {
+                unflipCards();
+            }
+        }
+
+        function disableCards() {
+            const [card1, card2] = flippedCards;
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            card1.removeEventListener('click', handleCardClick);
+            card2.removeEventListener('click', handleCardClick);
+            matchedPairs++;
+            updateInfo();
+            resetFlippedCards();
+            if (matchedPairs === emojiList.length) {
+                endGame();
+            }
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+            setTimeout(() => {
+                flippedCards.forEach(card => card.classList.remove('flipped'));
+                resetFlippedCards();
+                lockBoard = false;
+            }, 1000);
+        }
+
+        function resetFlippedCards() {
+            flippedCards = [];
+        }
+
+        function updateInfo() {
+            attemptsDisplay.textContent = attempts;
+            matchesDisplay.textContent = `${matchedPairs} / ${emojiList.length}`;
+        }
+
+        function startGame() {
+            gameOverlay.classList.add('opacity-0', 'pointer-events-none');
+            createBoard();
+            startTimer();
+        }
+
+        function endGame() {
+            stopTimer();
+            overlayTitle.textContent = '¡Felicidades!';
+            overlayMessage.textContent = `¡Has encontrado todas las ${emojiList.length} parejas en ${attempts} intentos y te tomó ${formatTime(elapsedTime)}!`;
+            startRestartButton.textContent = 'Jugar de Nuevo';
+            gameOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        startRestartButton.addEventListener('click', startGame);
+
+        window.onload = () => {
+            gameOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        };
+
+        // Script para manejar la visibilidad del formulario de reporte de errores
+        document.addEventListener('DOMContentLoaded', function() {
+            const reportButton = document.getElementById('show-report-form');
+            const hideButton = document.getElementById('hide-report-form');
+            const reportSection = document.getElementById('error-report-section');
+            const firstInput = document.getElementById('error-email-input');
+
+            if (reportButton && reportSection) {
+                reportButton.addEventListener('click', function() {
+                    reportSection.style.display = 'block'; // Mostrar el formulario
+                    reportButton.style.display = 'none'; // Ocultar el botón de mostrar
+
+                    // Desplazar la vista al formulario
+                    reportSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Enfocar el primer input después de un breve retraso para asegurar que el scroll termine
+                    setTimeout(() => {
+                        if (firstInput) {
+                            firstInput.focus();
+                        }
+                    }, 300); // Pequeño retraso para que el scroll tenga tiempo de completarse
+                });
+            }
+
+            if (hideButton && reportSection) {
+                hideButton.addEventListener('click', function() {
+                    reportSection.style.display = 'none'; // Ocultar el formulario
+                    if (reportButton) {
+                        reportButton.style.display = 'inline-block'; // Mostrar el botón de mostrar
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Error 401 - No Autorizado - ¡Caza el Botón!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fuentes personalizadas */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            overflow-y: auto; /* Permite desplazamiento vertical */
+            overflow-x: hidden; /* Evita barra de desplazamiento horizontal */
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: #2d3748;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+            margin-bottom: 1.5rem;
+            max-width: 90%;
+            width: 500px;
+        }
+
+        .code {
+            font-size: 5rem;
+            color: #f56565; /* Rojo para no autorizado */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .message {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            color: #cbd5e0;
+        }
+
+        .btn {
+            text-decoration: none;
+            background-color: #4299e1;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos específicos del juego "Caza el Botón" */
+        #game-area {
+            cursor: default;
+            min-height: 200px; /* Altura mínima para el área de juego */
+        }
+
+        #lost-button {
+            transition: all 0.1s ease-in-out; /* Transición rápida para el movimiento */
+        }
+
+        #game-overlay {
+            background-color: rgba(17, 24, 39, 0.95);
+        }
+
+        /* Estilos para el formulario de reporte de errores (directamente incrustados) */
+        #error-report-section {
+            background-color: #2d3748; /* Fondo oscuro */
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
+            max-width: 500px;
+            width: 90%;
+            color: #e2e8f0; /* Texto claro */
+            display: none; /* Oculto por defecto */
+        }
+        #error-report-section h3 {
+            color: #63B3ED; /* Azul claro para el título del formulario */
+        }
+        #error-report-section p {
+            color: #cbd5e0; /* Gris claro para el texto del formulario */
+        }
+        #error-report-section input[type="text"],
+        #error-report-section input[type="email"],
+        #error-report-section textarea {
+            background-color: #4A5568; /* Fondo de inputs más oscuro */
+            border-color: #4A5568;
+            color: #e2e8f0; /* Texto de input claro */
+        }
+        #error-report-section input[type="text"]:focus,
+        #error-report-section input[type="email"]:focus,
+        #error-report-section textarea:focus {
+            border-color: #63B3ED; /* Borde de enfoque azul claro */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5); /* Sombra de enfoque azul claro */
+        }
+        #error-report-section .submit-btn {
+            background-color: #4299e1; /* Azul para el botón de enviar */
+            color: white;
+        }
+        #error-report-section .submit-btn:hover {
+            background-color: #3182ce;
+        }
+        #error-report-section .cancel-btn {
+            background-color: #718096; /* Gris para el botón de cancelar */
+            color: white;
+        }
+        #error-report-section .cancel-btn:hover {
+            background-color: #5A67D8;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-100 p-4">
+
+    <!-- Contenedor principal del mensaje 401 -->
+    <div class="container">
+        <!-- Icono SVG de un candado o acceso denegado -->
+        <svg class="w-24 h-24 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+
+        <div class="code">401</div>
+        <div class="message">¡Acceso no autorizado!</div>
+        <div class="message">Necesitas iniciar sesión o tener los permisos adecuados para ver esta página. Mientras tanto, ¿quieres jugar un poco?</div>
+        <a href="/auth/login" class="btn">Ir a Iniciar Sesión</a>
+        <button id="show-report-form" class="btn bg-red-500 hover:bg-red-600 ml-4">Reportar Error</button>
+    </div>
+
+    <!-- Contenedor del juego -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-xl flex flex-col items-center justify-center relative mt-8">
+        <h2 class="text-2xl font-bold text-blue-400 mb-4">¡Caza el Botón!</h2>
+
+        <!-- Información del juego: Puntuación y Tiempo -->
+        <div class="flex justify-between w-full px-4 mb-4 text-lg font-semibold">
+            <span>Puntuación: <span id="score" class="text-green-400">0</span></span>
+            <span>Tiempo: <span id="timer" class="text-yellow-400">30s</span></span>
+        </div>
+
+        <!-- Área de juego -->
+        <div id="game-area" class="relative bg-gray-700 border-2 border-dashed border-gray-600 rounded-lg w-full aspect-video overflow-hidden flex items-center justify-center mb-4" style="min-height: 200px;">
+            <!-- El botón que se moverá -->
+            <button id="lost-button" class="absolute bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-100 ease-in-out transform hover:scale-110 active:scale-95" style="display: none;">
+                ¡Click!
+            </button>
+
+            <!-- Pantalla de inicio/fin de juego -->
+            <div id="game-overlay" class="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center rounded-lg text-center p-4">
+                <h3 id="overlay-title" class="text-3xl font-bold text-white mb-4">¿Listo para el desafío?</h3>
+                <p id="overlay-message" class="text-lg text-gray-300 mb-6">Haz clic en el botón lo más rápido que puedas para sumar puntos.</p>
+                <button id="start-restart-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                    Empezar Juego
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de reporte de errores (incrustado directamente) -->
+    <div id="error-report-section">
+        <h3 class="text-xl font-semibold text-blue-400 mb-4 text-center">¿Encontraste un error? ¡Ayúdanos a mejorarlo!</h3>
+        <p class="text-gray-400 mb-6 text-center">Por favor, describe lo que estabas haciendo cuando ocurrió este problema.</p>
+
+        <form method="POST" action="{{ url_for('main.report_error') }}" class="space-y-4">
+            {# No necesitamos hidden_tag() ni renderizar campos con form.field en archivos HTML puros.
+               Flask/Jinja2 los procesa cuando la ruta renderiza la plantilla.
+               Aquí, simplemente colocamos los inputs HTML puros con sus nombres para que el backend los reciba.
+               Si necesitas validación de WTForms, esta parte será manejada por Flask en el backend. #}
+
+            <div>
+                <label for="error-email-input" class="block text-sm font-medium text-gray-300">Tu Email (opcional)</label>
+                <input type="email" id="error-email-input" name="email" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="ej. tu@ejemplo.com">
+                {# No podemos mostrar errores de WTForms directamente aquí sin Jinja2.
+                   Si hay errores de validación, Flask los manejará con flash messages. #}
+            </div>
+
+            <div>
+                <label for="subject" class="block text-sm font-medium text-gray-300">Asunto del Error</label>
+                <input type="text" id="subject" name="subject" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="ej. Error al registrar horas">
+            </div>
+
+            <div>
+                <label for="message" class="block text-sm font-medium text-gray-300">Descripción Detallada del Error</label>
+                <textarea id="message" name="message" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-32" rows="5" placeholder="Describe el error que encontraste, qué estabas haciendo, y si es posible, la hora."></textarea>
+            </div>
+
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="hide-report-form" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                    Cancelar
+                </button>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    Enviar Reporte
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const lostButton = document.getElementById('lost-button');
+        const gameArea = document.getElementById('game-area');
+        const gameOverlay = document.getElementById('game-overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayMessage = document.getElementById('overlay-message');
+        const startRestartButton = document.getElementById('start-restart-button');
+
+        const INITIAL_TIME = 30; // Segundos
+        const BUTTON_MOVE_INTERVAL = 800; // Milisegundos para mover el botón
+        const BUTTON_SIZE_PX = 80; // Tamaño aproximado del botón para cálculos de posición
+
+        let score = 0;
+        let timeLeft = INITIAL_TIME;
+        let gameRunning = false;
+        let buttonTimeout; // Para el setTimeout que mueve el botón
+        let gameTimerInterval; // Para el setInterval del contador de tiempo
+
+        // Función para mover el botón a una posición aleatoria
+        function moveButton() {
+            if (!gameRunning) return;
+
+            const gameAreaWidth = gameArea.offsetWidth;
+            const gameAreaHeight = gameArea.offsetHeight;
+
+            // Calcular posiciones aleatorias dentro del área de juego
+            // Asegurarse de que el botón no se salga de los límites
+            const maxX = gameAreaWidth - BUTTON_SIZE_PX;
+            const maxY = gameAreaHeight - BUTTON_SIZE_PX;
+
+            const randomX = Math.max(0, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(0, Math.floor(Math.random() * maxY));
+
+            lostButton.style.left = `${randomX}px`;
+            lostButton.style.top = `${randomY}px`;
+            lostButton.style.display = 'block'; // Asegurarse de que el botón sea visible
+
+            // Establecer un timeout para mover el botón de nuevo si no se hace clic
+            buttonTimeout = setTimeout(moveButton, BUTTON_MOVE_INTERVAL);
+        }
+
+        // Función para manejar el clic en el botón
+        function handleButtonClick() {
+            if (!gameRunning) return;
+
+            score++;
+            scoreDisplay.textContent = score;
+            clearTimeout(buttonTimeout); // Limpiar el timeout actual
+            moveButton(); // Mover el botón inmediatamente al hacer clic
+        }
+
+        // Función para actualizar el contador de tiempo
+        function updateTimer() {
+            timeLeft--;
+            timerDisplay.textContent = `${timeLeft}s`;
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        // Función para iniciar el juego
+        function startGame() {
+            score = 0;
+            timeLeft = INITIAL_TIME;
+            gameRunning = true;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = `${timeLeft}s`;
+
+            gameOverlay.classList.add('hidden'); // Ocultar la superposición
+            lostButton.style.display = 'block'; // Mostrar el botón
+
+            moveButton(); // Mover el botón por primera vez
+            gameTimerInterval = setInterval(updateTimer, 1000); // Iniciar el contador de tiempo
+        }
+
+        // Función para terminar el juego
+        function endGame() {
+            gameRunning = false;
+            clearInterval(gameTimerInterval); // Detener el contador
+            clearTimeout(buttonTimeout); // Detener el movimiento del botón
+            lostButton.style.display = 'none'; // Ocultar el botón
+
+            overlayTitle.textContent = '¡Juego Terminado!';
+            overlayMessage.textContent = `Tu puntuación final es: ${score}. ¿Quieres jugar de nuevo?`;
+            startRestartButton.textContent = 'Jugar de Nuevo';
+            gameOverlay.classList.remove('hidden'); // Mostrar la superposición
+        }
+
+        // Event Listeners para el juego
+        lostButton.addEventListener('click', handleButtonClick);
+        startRestartButton.addEventListener('click', startGame);
+
+        // Inicializar el juego al cargar la página (mostrar pantalla de inicio)
+        window.onload = () => {
+            // Asegurarse de que el overlay esté visible al inicio
+            gameOverlay.classList.remove('hidden');
+            lostButton.style.display = 'none'; // Asegurarse de que el botón esté oculto al inicio
+        };
+
+        // --- Script para manejar la visibilidad del formulario de reporte de errores ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const reportButton = document.getElementById('show-report-form');
+            const hideButton = document.getElementById('hide-report-form');
+            const reportSection = document.getElementById('error-report-section');
+            const firstInput = document.getElementById('error-email-input');
+
+            if (reportButton && reportSection) {
+                reportButton.addEventListener('click', function() {
+                    reportSection.style.display = 'block'; // Mostrar el formulario
+                    reportButton.style.display = 'none'; // Ocultar el botón de mostrar
+
+                    // Desplazar la vista al formulario
+                    reportSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Enfocar el primer input después de un breve retraso para asegurar que el scroll termine
+                    setTimeout(() => {
+                        if (firstInput) {
+                            firstInput.focus();
+                        }
+                    }, 300); // Pequeño retraso para que el scroll tenga tiempo de completarse
+                });
+            }
+
+            if (hideButton && reportSection) {
+                hideButton.addEventListener('click', function() {
+                    reportSection.style.display = 'none'; // Ocultar el formulario
+                    if (reportButton) {
+                        reportButton.style.display = 'inline-block'; // Mostrar el botón de mostrar
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

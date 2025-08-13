@@ -1,68 +1,72 @@
 import os
+import sys
+import logging
+from datetime import datetime
+
 from flask import Flask
+from flask_login import LoginManager, current_user
+from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
-from dotenv import load_dotenv
+from flask_wtf.csrf import CSRFProtect
 
-db = SQLAlchemy()
+from config import Config
+
 login_manager = LoginManager()
-login_manager.login_view = "auth.login"
+login_manager.login_view = 'auth.login'
+login_manager.login_message_category = 'info'
 
+mail = Mail()
+db = SQLAlchemy()
+bcrypt = Bcrypt()
 migrate = Migrate()
+csrf = CSRFProtect()
 
 def create_app():
     app = Flask(__name__)
+    app.config.from_object(Config)
 
-    # Cargar variables de entorno desde .env.
-    # Es crucial que esto se ejecute antes de cualquier configuración que dependa de ellas.
-    load_dotenv() 
+    if not app.config.get('SECRET_KEY'):
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'una-clave-secreta-muy-larga-y-aleatoria-para-produccion')
+        app.logger.debug(f"SECRET_KEY por defecto aplicada: {app.config['SECRET_KEY']}")
 
-    instance_path = os.path.join(app.root_path, 'instance')
-    if not os.path.exists(instance_path):
-        os.makedirs(instance_path)
-
-    app.secret_key = os.getenv("SECRET_KEY", "clave_segura_por_defecto")
-
-    # Obtener la URL de la base de datos de las variables de entorno
-    db_url = os.getenv("DATABASE_URL")
-
-    # --- DEPURACIÓN CRÍTICA: Imprimir la URL de la base de datos obtenida ---
-    print(f"DEBUG: Valor de DATABASE_URL obtenido de .env: {db_url}")
-    # ----------------------------------------------------------------------
-
-    if not db_url:
-        # Si DATABASE_URL no está configurada, lanzamos un error explícito.
-        # Esto asegura que no haya un fallback silencioso a SQLite.
-        raise RuntimeError("La variable de entorno DATABASE_URL no está configurada. Por favor, asegúrate de que tu archivo .env contiene 'DATABASE_URL=\"postgresql://...\"'.")
-    
-    # Verificar que la URL de la base de datos apunta a PostgreSQL
-    if not db_url.startswith("postgresql://"):
-        raise ValueError(f"DATABASE_URL configurada no es una URL de PostgreSQL válida: {db_url}. Debe comenzar con 'postgresql://'.")
-
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-    # --- DEPURACIÓN FINAL: Imprimir la URI de SQLAlchemy configurada ---
-    print(f"DEBUG: SQLALCHEMY_DATABASE_URI configurada a: {app.config['SQLALCHEMY_DATABASE_URI']}")
-    # ------------------------------------------------------------------
-
-    db.init_app(app)
     login_manager.init_app(app)
+    mail.init_app(app)
+    db.init_app(app)
+    bcrypt.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
 
-    # Importa modelos aquí para evitar importaciones circulares
-    from app.models import User, Registro # Asegúrate de que Registro también esté importado
+    @app.before_request
+    def before_request():
+        if current_user.is_authenticated:
+            try:
+                current_user.last_seen = datetime.utcnow()
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Error al actualizar last_seen para {current_user.username}: {e}")
+            # db.session.remove() NO DEBE ESTAR AQUÍ. Flask-SQLAlchemy lo maneja automáticamente.
+
+    if not app.debug and not app.testing:
+        app.logger.setLevel(logging.DEBUG)
+
+    from app.routes.main import main
+    app.register_blueprint(main)
+
+    from app.routes.auth import auth as auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+
+    from app.routes.admin import admin as admin_bp
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+
+    from app.models import User
 
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Registra blueprints
-    from app.routes.auth import auth_bp
-    from app.routes.main import main_bp
-
-    app.register_blueprint(auth_bp, url_prefix="/auth")
-    app.register_blueprint(main_bp)
-
     return app
+
+__all__ = ['db', 'bcrypt', 'mail', 'login_manager', 'csrf']

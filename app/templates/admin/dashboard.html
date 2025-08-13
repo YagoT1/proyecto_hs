@@ -3,174 +3,108 @@
 {% block title %}Panel de Administración{% endblock %}
 
 {% block content %}
-<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700">
-    <h1 class="text-4xl font-bold mb-6 text-white">Panel de Administración</h1>
-    <p class="text-lg mb-8 text-gray-300">Gestión centralizada de usuarios y sus datos.</p>
+<div class="min-h-screen flex flex-col items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full space-y-8 bg-gray-800 p-10 rounded-xl shadow-lg text-center">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+            <i class="fas fa-users-cog text-blue-400 mr-2"></i> Panel de Administración
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-400">
+            Gestiona los usuarios, sus roles y accede a sus historiales de horas y datos importantes.
+        </p>
 
-    <h2 class="text-3xl font-semibold mb-6 text-white text-left">Todos los Usuarios</h2>
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mt-4 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="p-3 rounded-md text-sm {% if category == 'success' %}bg-green-500 text-white{% elif category == 'danger' %}bg-red-500 text-white{% elif category == 'info' %}bg-blue-500 text-white{% else %}bg-gray-500 text-white{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-    {% if users %}
-    <div class="overflow-x-auto rounded-xl shadow-xl border border-gray-700">
-        <table class="min-w-full bg-gray-900 text-white">
-            <thead class="bg-gray-700">
-                <tr>
-                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider rounded-tl-xl">ID</th>
-                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">Username</th>
-                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">Email</th>
-                    <th class="py-4 px-6 text-left text-sm font-semibold uppercase tracking-wider">Total Horas</th>
-                    {# Las columnas 'Admin', 'Moderador' y 'Owner' solo se muestran si el usuario actual es un administrador completo #}
-                    {% if current_user.is_admin %}
-                        <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider">Admin</th>
-                        <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider">Moderador</th>
-                        <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider">Owner</th>
-                    {% endif %}
-                    <th class="py-4 px-6 text-center text-sm font-semibold uppercase tracking-wider rounded-tr-xl">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr class="{% if loop.index % 2 == 0 %}bg-gray-800{% else %}bg-gray-850{% endif %} border-b border-gray-700 hover:bg-gray-700 transition duration-200 ease-in-out">
-                    <td class="py-3.5 px-6 text-base">{{ user.id }}</td>
-                    <td class="py-3.5 px-6 text-base">{{ user.username }}</td>
-                    <td class="py-3.5 px-6 text-base">{{ user.email }}</td>
-                    <td class="py-3.5 px-6 text-base">{{ user.total_horas }} hs</td>
-                    {# Las columnas 'Admin', 'Moderador' y 'Owner' solo se muestran si el usuario actual es un administrador completo #}
-                    {% if current_user.is_admin %}
-                        <td class="py-3.5 px-6 text-center">
-                            {% if user.is_admin %}
-                                <span class="text-green-500 font-bold">Sí</span>
-                            {% else %}
-                                <span class="text-red-500">No</span>
-                            {% endif %}
-                        </td>
-                        <td class="py-3.5 px-6 text-center"> {# Columna Moderador #}
-                            {% if user.is_moderator %}
-                                <span class="text-green-500 font-bold">Sí</span>
-                            {% else %}
-                                <span class="text-red-500">No</span>
-                            {% endif %}
-                        </td>
-                        <td class="py-3.5 px-6 text-center"> {# Columna Owner #}
-                            {% if user.is_owner %}
-                                <span class="text-yellow-500 font-bold">Sí</span>
-                            {% else %}
-                                <span class="text-red-500">No</span>
-                            {% endif %}
-                        </td>
-                    {% endif %}
-                    <td class="py-3.5 px-6 text-center flex justify-center items-center space-x-3">
-                        {# Botones de acción solo visibles para administradores completos #}
-                        {% if current_user.is_admin or current_user.is_moderator %} {# Moderadores también pueden ver, pero no todas las acciones #}
-                            <a href="{{ url_for('main.admin_edit_user', user_id=user.id) }}"
-                               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md
-                               {% if not current_user.is_admin or (user.is_owner and not current_user.is_owner) %}opacity-50 cursor-not-allowed{% endif %}"
-                               {% if not current_user.is_admin or (user.is_owner and not current_user.is_owner) %}onclick="return false;"{% endif %}>
-                                Editar
-                            </a>
-                            <a href="{{ url_for('main.admin_reset_user_password', user_id=user.id) }}"
-                               class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md
-                               {% if not current_user.is_admin or (user.is_owner and not current_user.is_owner) %}opacity-50 cursor-not-allowed{% endif %}"
-                               {% if not current_user.is_admin or (user.is_owner and not current_user.is_owner) %}onclick="return false;"{% endif %}>
-                                Restablecer Contraseña
-                            </a>
-                            
-                            {# Botones para cambiar rol Admin - Solo visibles y activos para el Owner #}
-                            {% if current_user.is_owner %}
-                                {% if user.id != current_user.id %} {# No permitir cambiar el propio rol admin #}
-                                    {% if user.is_admin %}
-                                        <button type="button"
-                                                onclick="showAdminToggleConfirmation('{{ url_for('main.admin_toggle_admin_status', user_id=user.id) }}', 'quitar_admin');"
-                                                class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
-                                            Quitar Admin
-                                        </button>
+        <div class="mt-8 bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+            <h3 class="text-xl font-semibold text-white mb-4">Usuarios Registrados</h3>
+            {% if users %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-600 rounded-lg overflow-hidden">
+                        <thead class="bg-gray-600">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider rounded-tl-lg">ID</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Usuario</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Email</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Área</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Rol</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Último Acceso</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Estado Online</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider rounded-tr-lg">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-gray-800 divide-y divide-gray-700">
+                            {% for user in users %}
+                            <tr class="hover:bg-gray-700 transition duration-150 ease-in-out">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">{{ user.id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ user.username }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ user.email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ user.area }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ user.rol }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ user.ultimo_acceso }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                    {% if user.is_online %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500 text-white">
+                                            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-white" fill="currentColor" viewBox="0 0 8 8">
+                                                <circle cx="4" cy="4" r="3" />
+                                            </svg>
+                                            Online
+                                        </span>
                                     {% else %}
-                                        <button type="button"
-                                                onclick="showAdminToggleConfirmation('{{ url_for('main.admin_toggle_admin_status', user_id=user.id) }}', 'hacer_admin');"
-                                                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
-                                            Hacer Admin
-                                        </button>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white">
+                                            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-white" fill="currentColor" viewBox="0 0 8 8">
+                                                <circle cx="4" cy="4" r="3" />
+                                            </svg>
+                                            Offline
+                                        </span>
                                     {% endif %}
-                                {% else %}
-                                    <span class="text-gray-500 text-sm italic">Tu Cuenta</span>
-                                {% endif %}
-                            {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex flex-wrap gap-2"> {# ¡CAMBIADO AQUÍ! #}
+                                    <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="text-blue-400 hover:text-blue-300 flex items-center justify-center">
+                                        <i class="fas fa-edit mr-1"></i> Editar
+                                    </a>
+                                    
+                                    <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que quieres eliminar a este usuario?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="text-red-400 hover:text-red-300 bg-transparent border-none p-0 cursor-pointer flex items-center justify-center">
+                                            <i class="fas fa-trash-alt mr-1"></i> Eliminar
+                                        </button>
+                                    </form>
 
-                            {# Botones para cambiar rol Moderador - Visibles para Admin y Owner #}
-                            {% if current_user.is_admin or current_user.is_owner %}
-                                {% if user.id != current_user.id %} {# No permitir cambiar el propio rol moderador #}
-                                    {% if user.is_moderator %}
-                                        <button type="button"
-                                                onclick="showAdminToggleConfirmation('{{ url_for('main.admin_toggle_moderator_status', user_id=user.id) }}', 'quitar_moderator');"
-                                                class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md
-                                                {% if user.is_admin and not user.is_owner %}opacity-50 cursor-not-allowed{% endif %}"
-                                                {% if user.is_admin and not user.is_owner %}onclick="return false;"{% endif %}> {# Un admin no puede quitar moderador a otro admin #}
-                                            Quitar Moderador
-                                        </button>
-                                    {% else %}
-                                        <button type="button"
-                                                onclick="showAdminToggleConfirmation('{{ url_for('main.admin_toggle_moderator_status', user_id=user.id) }}', 'hacer_moderator');"
-                                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
-                                            Hacer Moderador
-                                        </button>
+                                    {# Botones para alternar roles #}
+                                    {% if user.id != current_user.id %} {# No permitir cambiar el propio rol #}
+                                        <a href="{{ url_for('admin.toggle_admin', user_id=user.id) }}" class="text-green-400 hover:text-green-300 flex items-center justify-center">
+                                            {% if user.is_admin or user.is_owner %}<i class="fas fa-user-minus mr-1"></i> Revocar Admin{% else %}<i class="fas fa-user-plus mr-1"></i> Hacer Admin{% endif %}
+                                        </a>
+                                        <a href="{{ url_for('admin.toggle_moderator', user_id=user.id) }}" class="text-yellow-400 hover:text-yellow-300 flex items-center justify-center">
+                                            {% if user.is_moderator %}<i class="fas fa-user-times mr-1"></i> Revocar Moderador{% else %}<i class="fas fa-user-check mr-1"></i> Hacer Moderador{% endif %}
+                                        </a>
                                     {% endif %}
-                                {% endif %}
-                            {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center text-gray-400 mt-4">No hay usuarios registrados en el sistema.</p>
+            {% endif %}
+        </div>
 
-                            {# Botón para eliminar usuario - Solo visible y activo para el Owner #}
-                            {% if current_user.is_owner %}
-                                {% if user.id != current_user.id and not user.is_owner %} {# Owner no puede eliminarse a sí mismo ni a otros Owners #}
-                                    <button type="button"
-                                            onclick="showAdminToggleConfirmation('{{ url_for('main.admin_delete_user', user_id=user.id) }}', 'eliminar_usuario');"
-                                            class="bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 transform hover:scale-105 shadow-md">
-                                        Eliminar Usuario
-                                    </button>
-                                {% endif %}
-                            {% endif %}
-                        {% else %}
-                            {# Si no es admin ni moderador, se muestra "Solo vista" #}
-                            <span class="text-gray-500 text-sm italic">Solo vista</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="mt-6">
+            <a href="{{ url_for('main.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                Volver al Dashboard Principal
+            </a>
+        </div>
     </div>
-    {% else %}
-    <p class="text-gray-400 text-center text-xl mt-12">No hay usuarios registrados en el sistema.</p>
-    {% endif %}
-
-    <p class="mt-10 text-gray-400 text-sm">
-        <a href="{{ url_for('main.index') }}" class="text-blue-400 hover:underline">Volver al Dashboard</a>
-    </p>
 </div>
-
-<script>
-    // Función para mostrar el modal de confirmación para cambiar el estado de administrador/moderador
-    function showAdminToggleConfirmation(toggleUrl, actionType) {
-        let message = '';
-        if (actionType === 'quitar_admin') {
-            message = '¿Estás seguro de que quieres QUITAR los permisos de ADMINISTRADOR a este usuario?';
-        } else if (actionType === 'hacer_admin') {
-            message = '¿Estás seguro de que quieres HACER ADMINISTRADOR a este usuario?';
-        } else if (actionType === 'quitar_moderator') {
-            message = '¿Estás seguro de que quieres QUITAR los permisos de MODERADOR a este usuario?';
-        } else if (actionType === 'hacer_moderator') {
-            message = '¿Estás seguro de que quieres HACER MODERADOR a este usuario?';
-        } else if (actionType === 'eliminar_usuario') {
-            message = '¿Estás seguro de que quieres ELIMINAR este usuario y TODOS sus registros? Esta acción es IRREVERSIBLE.';
-        }
-
-        showConfirmationModal(message, function(confirmed) {
-            if (confirmed) {
-                // Crear un formulario dinámicamente para enviar una solicitud POST
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = toggleUrl;
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
-    }
-</script>
-{% endblock %}
+{% endblock content %}

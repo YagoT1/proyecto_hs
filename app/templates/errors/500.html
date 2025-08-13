@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lo sentimos :(</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fuentes personalizadas */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            overflow-y: auto; /* Permite desplazamiento vertical */
+            overflow-x: hidden; /* Evita barra de desplazamiento horizontal */
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: #2d3748;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+            margin-bottom: 1.5rem;
+            max-width: 90%;
+            width: 500px;
+        }
+
+        .code {
+            font-size: 5rem;
+            color: #f56565; /* Rojo para errores de servidor */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .message {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            color: #cbd5e0;
+        }
+
+        .btn {
+            text-decoration: none;
+            background-color: #4299e1;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos del juego "Atrapa al Error" */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3x3 grid */
+            gap: 1rem;
+            background-color: #374151; /* bg-gray-700 */
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 450px; /* Tamaño máximo del tablero */
+            aspect-ratio: 1/1; /* Mantiene el tablero cuadrado */
+        }
+
+        .hole {
+            background-color: #1F2937; /* bg-gray-800 */
+            border-radius: 50%; /* Forma de agujero */
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Asegura que el icono no se salga */
+            position: relative;
+        }
+
+        .mole {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem; /* Tamaño del icono de error */
+            color: #EF4444; /* Rojo para el error */
+            cursor: pointer;
+            transform: translateY(100%); /* Empieza oculto */
+            transition: transform 0.2s ease-out;
+            z-index: 5;
+        }
+
+        .mole.up {
+            transform: translateY(0); /* Sube */
+        }
+
+        .mole.hit {
+            transform: translateY(100%) scale(0.8); /* Baja y se encoge un poco al ser golpeado */
+            opacity: 0;
+            transition: transform 0.1s ease-in, opacity 0.1s ease-in;
+        }
+
+        #game-overlay {
+            background-color: rgba(17, 24, 39, 0.95);
+        }
+
+        /* Estilos para el formulario de reporte de errores (directamente incrustados) */
+        #error-report-section {
+            background-color: #2d3748; /* Fondo oscuro */
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
+            max-width: 500px;
+            width: 90%;
+            color: #e2e8f0; /* Texto claro */
+            display: none; /* Oculto por defecto */
+        }
+        #error-report-section h3 {
+            color: #63B3ED; /* Azul claro para el título del formulario */
+        }
+        #error-report-section p {
+            color: #cbd5e0; /* Gris claro para el texto del formulario */
+        }
+        #error-report-section input[type="text"],
+        #error-report-section input[type="email"],
+        #error-report-section textarea {
+            background-color: #4A5568; /* Fondo de inputs más oscuro */
+            border-color: #4A5568;
+            color: #e2e8f0; /* Texto de input claro */
+        }
+        #error-report-section input[type="text"]:focus,
+        #error-report-section input[type="email"]:focus,
+        #error-report-section textarea:focus {
+            border-color: #63B3ED; /* Borde de enfoque azul claro */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5); /* Sombra de enfoque azul claro */
+        }
+        #error-report-section .submit-btn {
+            background-color: #4299e1; /* Azul para el botón de enviar */
+            color: white;
+        }
+        #error-report-section .submit-btn:hover {
+            background-color: #3182ce;
+        }
+        #error-report-section .cancel-btn {
+            background-color: #718096; /* Gris para el botón de cancelar */
+            color: white;
+        }
+        #error-report-section .cancel-btn:hover {
+            background-color: #5A67D8;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-100 p-4">
+
+    <!-- Contenedor principal del mensaje 500 -->
+    <div class="container">
+        <!-- Icono SVG de un engranaje roto o error de servidor -->
+        <svg class="w-24 h-24 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+
+        <div class="code">500</div>
+        <div class="message">¡Error Interno del Servidor!</div>
+        <div class="message">Ha ocurrido un problema inesperado en nuestro servidor. Estamos trabajando para solucionarlo. Mientras tanto, ¿por qué no juegas un divertido juego de "Atrapa al Error"?</div>
+        <a href="/" class="btn">Volver al inicio</a>
+        <button id="show-report-form" class="btn bg-red-500 hover:bg-red-600 ml-4">Reportar Error</button>
+    </div>
+
+    <!-- Contenedor del juego "Atrapa al Error" -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-xl flex flex-col items-center justify-center relative mt-8">
+        <h2 class="text-2xl font-bold text-blue-400 mb-4">¡Atrapa al Error!</h2>
+
+        <!-- Información del juego: Puntuación y Tiempo -->
+        <div class="flex justify-between w-full px-4 mb-4 text-lg font-semibold">
+            <span>Puntuación: <span id="score" class="text-green-400">0</span></span>
+            <span>Tiempo: <span id="timer" class="text-yellow-400">30s</span></span>
+        </div>
+
+        <!-- Área de juego -->
+        <div id="game-board">
+            <!-- Los agujeros y los "errores" se generarán aquí con JavaScript -->
+        </div>
+
+        <!-- Pantalla de inicio/fin de juego -->
+        <div id="game-overlay" class="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center rounded-lg text-center p-4 transition-opacity duration-300 ease-in-out">
+            <h3 id="overlay-title" class="text-3xl font-bold text-white mb-4">¡Listo para atrapar errores?</h3>
+            <p id="overlay-message" class="text-lg text-gray-300 mb-6">Haz clic en los iconos de error cuando aparezcan para sumar puntos.</p>
+            <button id="start-restart-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                Empezar Juego
+            </button>
+        </div>
+    </div>
+
+    <!-- Formulario de reporte de errores (incrustado directamente) -->
+    <div id="error-report-section">
+        <h3 class="text-xl font-semibold text-blue-400 mb-4 text-center">¿Encontraste un error? ¡Ayúdanos a mejorarlo!</h3>
+        <p class="text-gray-400 mb-6 text-center">Por favor, describe lo que estabas haciendo cuando ocurrió este problema.</p>
+
+        <form method="POST" action="{{ url_for('main.report_error') }}" class="space-y-4">
+            {{ form.hidden_tag() }}
+
+            <div>
+                {{ form.email.label(class="block text-sm font-medium text-gray-300") }}
+                {{ form.email(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm", placeholder="ej. tu@ejemplo.com", id="error-email-input") }}
+                {% for error in form.email.errors %}
+                    <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                {{ form.subject.label(class="block text-sm font-medium text-gray-300") }}
+                {{ form.subject(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm", placeholder="ej. Error al registrar horas") }}
+                {% for error in form.subject.errors %}
+                    <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                {{ form.message.label(class="block text-sm font-medium text-gray-300") }}
+                {{ form.message(class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-32", rows="5", placeholder="Describe el error que encontraste, qué estabas haciendo, y si es posible, la hora.") }}
+                {% for error in form.message.errors %}
+                    <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="hide-report-form" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                    Cancelar
+                </button>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    Enviar Reporte
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const gameBoard = document.getElementById('game-board');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const gameOverlay = document.getElementById('game-overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayMessage = document.getElementById('overlay-message');
+        const startRestartButton = document.getElementById('start-restart-button');
+
+        const INITIAL_TIME = 30; // Segundos de juego
+        const MOLE_UP_TIME_MIN = 600; // Tiempo mínimo que el error está arriba (ms)
+        const MOLE_UP_TIME_MAX = 1200; // Tiempo máximo que el error está arriba (ms)
+        const MOLE_DOWN_TIME = 300; // Tiempo que tarda en bajar (ms)
+
+        let score = 0;
+        let timeLeft = INITIAL_TIME;
+        let gameRunning = false;
+        let timerInterval;
+        let popupTimeout; // Para controlar cuándo sube el siguiente error
+        let lastHole = null; // Para no repetir el mismo agujero
+
+        // Icono SVG para los "errores" que aparecen
+        const errorIconSvg = `
+            <svg class="w-full h-full p-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        `;
+
+        // Crear los agujeros del tablero
+        function createBoard() {
+            gameBoard.innerHTML = '';
+            for (let i = 0; i < 9; i++) { // 3x3 grid = 9 agujeros
+                const hole = document.createElement('div');
+                hole.classList.add('hole');
+                hole.dataset.index = i;
+
+                const mole = document.createElement('div');
+                mole.classList.add('mole');
+                mole.innerHTML = errorIconSvg;
+                mole.addEventListener('click', () => hitMole(mole));
+
+                hole.appendChild(mole);
+                gameBoard.appendChild(hole);
+            }
+        }
+
+        // Obtener un agujero aleatorio (que no sea el último)
+        function getRandomHole() {
+            const holes = document.querySelectorAll('.hole');
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * holes.length);
+            } while (holes[randomIndex] === lastHole);
+            lastHole = holes[randomIndex];
+            return holes[randomIndex];
+        }
+
+        // Hacer que un "error" aparezca
+        function popUpMole() {
+            if (!gameRunning) return;
+
+            const hole = getRandomHole();
+            const mole = hole.querySelector('.mole');
+
+            mole.classList.remove('hit'); // Asegurarse de que no tenga la clase hit
+            mole.classList.add('up'); // Subir el error
+
+            const upTime = Math.random() * (MOLE_UP_TIME_MAX - MOLE_UP_TIME_MIN) + MOLE_UP_TIME_MIN;
+
+            popupTimeout = setTimeout(() => {
+                mole.classList.remove('up'); // Bajar el error
+                // Después de que baje, programar el siguiente pop-up
+                if (gameRunning) {
+                    setTimeout(popUpMole, MOLE_DOWN_TIME);
+                }
+            }, upTime);
+        }
+
+        // Manejar el clic en un "error"
+        function hitMole(mole) {
+            if (!gameRunning || mole.classList.contains('hit')) return; // Evitar doble clic
+
+            score += 1;
+            scoreDisplay.textContent = score;
+            mole.classList.add('hit'); // Marcar como golpeado
+            mole.classList.remove('up'); // Forzarlo a bajar
+
+            clearTimeout(popupTimeout); // Cancelar el temporizador actual
+            // Después de golpearlo, programar el siguiente pop-up rápidamente
+            if (gameRunning) {
+                setTimeout(popUpMole, MOLE_DOWN_TIME);
+            }
+        }
+
+        // Actualizar el contador de tiempo
+        function updateTimer() {
+            timeLeft--;
+            timerDisplay.textContent = `${timeLeft}s`;
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        // Iniciar el juego
+        function startGame() {
+            score = 0;
+            timeLeft = INITIAL_TIME;
+            gameRunning = true;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = `${timeLeft}s`;
+
+            gameOverlay.classList.add('opacity-0', 'pointer-events-none'); // Ocultar superposición
+            createBoard(); // Crear el tablero con los errores
+
+            popUpMole(); // Hacer que el primer error aparezca
+            timerInterval = setInterval(updateTimer, 1000); // Iniciar el contador de tiempo
+        }
+
+        // Terminar el juego
+        function endGame() {
+            gameRunning = false;
+            clearInterval(timerInterval); // Detener el contador
+            clearTimeout(popupTimeout); // Detener el pop-up de errores
+
+            overlayTitle.textContent = '¡Tiempo Terminado!';
+            overlayMessage.textContent = `Atrapaste ${score} errores. ¿Quieres intentar de nuevo?`;
+            startRestartButton.textContent = 'Jugar de Nuevo';
+            gameOverlay.classList.remove('opacity-0', 'pointer-events-none'); // Mostrar superposición
+        }
+
+        // Event listener para el botón de inicio/reinicio
+        startRestartButton.addEventListener('click', startGame);
+
+        // Inicializar al cargar la página
+        window.onload = () => {
+            gameOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        };
+
+        // --- Script para manejar la visibilidad del formulario de reporte de errores ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const reportButton = document.getElementById('show-report-form');
+            const hideButton = document.getElementById('hide-report-form');
+            const reportSection = document.getElementById('error-report-section');
+            const firstInput = document.getElementById('error-email-input');
+
+            if (reportButton && reportSection) {
+                reportButton.addEventListener('click', function() {
+                    reportSection.style.display = 'block'; // Mostrar el formulario
+                    reportButton.style.display = 'none'; // Ocultar el botón de mostrar
+
+                    // Desplazar la vista al formulario
+                    reportSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Enfocar el primer input después de un breve retraso para asegurar que el scroll termine
+                    setTimeout(() => {
+                        if (firstInput) {
+                            firstInput.focus();
+                        }
+                    }, 300); // Pequeño retraso para que el scroll tenga tiempo de completarse
+                });
+            }
+
+            if (hideButton && reportSection) {
+                hideButton.addEventListener('click', function() {
+                    reportSection.style.display = 'none'; // Ocultar el formulario
+                    if (reportButton) {
+                        reportButton.style.display = 'inline-block'; // Mostrar el botón de mostrar
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

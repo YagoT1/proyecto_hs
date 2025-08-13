@@ -17,7 +17,7 @@ body, html {
     /* display: flex; */
     /* justify-content: center; */
     /* align-items: center; */
-    
+
     /* En su lugar, haremos que el body sea un contenedor flex-column
        para que el navbar y el main se apilen correctamente. */
     display: flex;
@@ -247,4 +247,36 @@ button[type="submit"]:focus {
         padding-left: 1rem;
         padding-right: 1rem;
     }
+}
+.error-page {
+    max-width: 600px;
+    margin: 100px auto;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+.error-page h1 {
+    font-size: 3rem;
+    color: #c0392b; /* rojo profesional */
+    margin-bottom: 20px;
+}
+
+.error-page p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #555;
+}
+
+.error-page .btn-primary {
+    background-color: #2980b9; /* azul corporativo */
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.error-page .btn-primary:hover {
+    background-color: #3498db;
 }

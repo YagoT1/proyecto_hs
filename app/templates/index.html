@@ -1,69 +1,87 @@
 {% extends "base.html" %}
 
-{% block title %}Bienvenido - Horas Extra{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700">
-    <h1 class="text-5xl font-extrabold mb-4 text-white leading-tight">¡Bienvenido, <span class="text-blue-400">{{ current_user.username }}</span>!</h1>
-    <p class="text-xl mb-10 text-gray-300">
-        Este es tu tablero principal. Desde aquí puedes gestionar tus horas extra de manera eficiente.
-    </p>
+<div class="min-h-screen flex flex-col items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full space-y-8 bg-gray-800 p-10 rounded-xl shadow-lg text-center">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+            <i class="fas fa-tachometer-alt text-blue-400 mr-2"></i> Dashboard
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-400">
+            Bienvenido, <span class="font-medium text-white">{{ current_user.username }}</span>! Aquí tienes un resumen de tus horas.
+        </p>
 
-    <!-- Nueva sección para mostrar el total de horas -->
-    <div class="mb-10 p-8 bg-blue-900 rounded-xl shadow-lg border border-blue-700 flex items-center justify-center flex-col md:flex-row gap-6">
-        <div class="text-white">
-            <p class="text-2xl font-semibold mb-2">Total de Horas Extra Registradas:</p>
-            <p class="text-6xl font-extrabold text-blue-300">{{ total_horas_registradas }} <span class="text-4xl">hs</span></p>
-        </div>
-        <div class="text-gray-300 text-lg max-w-md">
-            <p>Este es el total acumulado de todas las horas extra que has registrado hasta la fecha.</p>
-            <p class="mt-2">Puedes ver el detalle en tu historial.</p>
-        </div>
-    </div>
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mt-4 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="p-3 rounded-md text-sm {% if category == 'success' %}bg-green-500 text-white{% elif category == 'danger' %}bg-red-500 text-white{% elif category == 'info' %}bg-blue-500 text-white{% else %}bg-gray-500 text-white{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
-        <!-- Sección de Registro de Horas (Dashboard Link) -->
-        <div class="bg-gray-900 p-8 rounded-xl shadow-lg flex flex-col justify-between border border-gray-700 hover:border-blue-500 transition duration-300 ease-in-out transform hover:-translate-y-1">
-            <div>
-                <h2 class="text-3xl font-bold mb-4 text-white">Registrar Nuevas Horas</h2>
-                <p class="text-gray-400 mb-8">
-                    Ingresa y organiza tus horas extra trabajadas para cualquier día del mes.
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Tarjeta de Horas Totales -->
+            <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                <h3 class="text-xl font-semibold text-white mb-2">Horas Totales Registradas</h3>
+                <p class="text-4xl font-bold text-green-400">{{ "%.2f" | format(total_hours) }}</p>
+                <p class="text-gray-400">horas</p>
+            </div>
+
+            <!-- Tarjeta de Horas del Mes Anterior -->
+            <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                <h3 class="text-xl font-semibold text-white mb-2">Horas del Mes Anterior</h3>
+                <p class="text-4xl font-bold text-purple-400">{{ "%.2f" | format(previous_month_hours) }}</p>
+                <p class="text-gray-400">horas</p>
+            </div>
+        </div>
+
+        <!-- Información de la Cuenta -->
+        <div class="mt-8 bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600 text-left">
+            <h3 class="text-xl font-semibold text-white mb-4">Información de tu Cuenta</h3>
+            <div class="space-y-2 text-gray-300">
+                <p><span class="font-medium">Nombre de Usuario:</span> {{ current_user.username }}</p>
+                <p><span class="font-medium">Email:</span> {{ current_user.email }}</p>
+                <p><span class="font-medium">Área:</span> {{ current_user.area or 'No asignada' }}</p>
+                <p><span class="font-medium">Registrado desde:</span> {{ registered_at_local }}</p>
+                <p><span class="font-medium">Último Acceso:</span> {{ last_login_time_local }}</p>
+                <p><span class="font-medium">Rol:</span> 
+                    {% if current_user.is_owner %}Owner
+                    {% elif current_user.is_admin %}Admin
+                    {% elif current_user.is_moderator %}Moderador
+                    {% else %}Usuario
+                    {% endif %}
                 </p>
             </div>
-            <a href="{{ url_for('main.registrar_horas') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
-                Registrar Horas Ahora
-            </a>
         </div>
 
-        <!-- Sección de Historial (Dashboard Link) -->
-        <div class="bg-gray-900 p-8 rounded-xl shadow-lg flex flex-col justify-between border border-gray-700 hover:border-green-500 transition duration-300 ease-in-out transform hover:-translate-y-1">
-            <div>
-                <h2 class="text-3xl font-bold mb-4 text-white">Ver Historial</h2>
-                <p class="text-gray-400 mb-8">
-                    Accede a un resumen completo de tus registros anteriores y genera informes detallados.
-                </p>
-            </div>
-            <a href="{{ url_for('main.historial') }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
-                Ver Mi Historial
+        <div class="mt-8 flex flex-wrap justify-center gap-4">
+            <a href="{{ url_for('main.registrar_horas') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-plus mr-2"></i> Registrar Horas
             </a>
-        </div>
-
-        <!-- Nueva Sección para Recibos de Sueldo -->
-        <div class="bg-gray-900 p-8 rounded-xl shadow-lg flex flex-col justify-between border border-gray-700 hover:border-purple-500 transition duration-300 ease-in-out transform hover:-translate-y-1">
-            <div>
-                <h2 class="text-3xl font-bold mb-4 text-white">Recibos de Sueldo</h2>
-                <p class="text-gray-400 mb-8">
-                    Accede a tus recibos de sueldo subidos. Se requiere verificación adicional.
-                </p>
-            </div>
-            <a href="{{ url_for('main.recibos') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
-                Ver Recibos
+            <a href="{{ url_for('main.ver_historial') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <i class="fas fa-history mr-2"></i> Ver Historial
             </a>
+            <a href="{{ url_for('main.generate_historial_pdf_by_month', year=current_year, month=current_month) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-file-pdf mr-2"></i> Generar PDF
+            </a>
+            <a href="{{ url_for('main.mis_recibos') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                <i class="fas fa-receipt mr-2"></i> Mis Recibos
+            </a>
+            <a href="{{ url_for('main.profile') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                <i class="fas fa-user-circle mr-2"></i> Mi Perfil
+            </a>
+            {% if current_user.is_admin or current_user.is_owner or current_user.is_moderator %}
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <i class="fas fa-users-cog mr-2"></i> Panel de Administración
+                </a>
+            {% endif %}
         </div>
-    </div>
-
-    <div class="mt-16 text-gray-500 text-sm">
-        <p>¿Necesitas ayuda? Contacta a soporte o revisa la documentación.</p>
     </div>
 </div>
-{% endblock %}
+{% endblock content %}

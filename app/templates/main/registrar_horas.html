@@ -1,128 +1,126 @@
-{% extends "base.html" %}
+    {% extends "base.html" %}
 
-{% block title %}Registrar Horas Extra{% endblock %}
+    {% block title %}Registrar Horas{% endblock %}
 
-{% block content %}
-<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700">
-    <h1 class="text-4xl font-bold mb-6 text-white">Registrar Múltiples Horas Extra</h1>
-    <p class="text-lg mb-8 text-gray-300">Añade una o más entradas de horas extra antes de guardar o generar el reporte.</p>
+    {% block content %}
+    <div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700 max-w-3xl mx-auto">
+        <h1 class="text-4xl font-bold mb-6 text-white">Registrar Horas Extra</h1>
+        <p class="text-lg mb-8 text-gray-300">Ingresa tus horas extra trabajadas y genera reportes.</p>
 
-    <form id="multiRegistroForm" method="POST" action="{{ url_for('main.registrar_horas') }}">
-        <div id="entries-container" class="space-y-6 mb-8">
-            <!-- Las entradas de registro se añadirán aquí con JavaScript -->
-        </div>
-
-        <div class="flex flex-col md:flex-row justify-center items-center gap-6 mt-8">
-            <button type="button" id="add-entry-button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl flex items-center justify-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                Añadir Otra Fecha
-            </button>
-            
-            <button type="button" id="save-button" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-10 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
-                Guardar Registros
-            </button>
-
-            <button type="button" id="generate-pdf-button" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-10 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
-                Generar PDF
-            </button>
-        </div>
-    </form>
-
-    <p class="mt-10 text-gray-400 text-sm">
-        <a href="{{ url_for('main.index') }}" class="text-blue-400 hover:underline">Volver al Dashboard</a>
-    </p>
-</div>
-
-<script>
-    let entryCount = 0; // Contador para nombres de campos únicos
-
-    function addEntryRow(initialData = {}) {
-        const container = document.getElementById('entries-container');
-        const newEntryDiv = document.createElement('div');
-        newEntryDiv.classList.add('bg-gray-800', 'p-6', 'rounded-lg', 'shadow-md', 'border', 'border-gray-600', 'hover:border-blue-500', 'transition', 'duration-300', 'ease-in-out', 'transform', 'hover:scale-102', 'relative');
-        newEntryDiv.dataset.entryId = entryCount; // Para identificar la fila
-
-        const today = new Date().toISOString().split('T')[0]; // Fecha actual en formato YYYY-MM-DD
-
-        newEntryDiv.innerHTML = `
-            <button type="button" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition duration-200 remove-entry-button" data-entry-id="${entryCount}">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <h3 class="text-2xl font-semibold mb-4 text-white">Registro de Horas</h3>
-            <div class="mb-4">
-                <label for="fecha_${entryCount}" class="block text-gray-300 text-sm font-bold mb-2">Fecha:</label>
-                <input type="date" id="fecha_${entryCount}" name="fecha_${entryCount}"
-                       class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200"
-                       value="${initialData.fecha || today}" required>
+        <form method="POST" id="registroForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div id="registros_container" class="space-y-6 mb-8">
+                {# Inicialmente, un campo de registro vacío #}
+                <div class="registro-item bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600 relative">
+                    <button type="button" class="remove-registro absolute top-3 right-3 text-red-400 hover:text-red-600 focus:outline-none" style="display:none;">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    <div class="mb-4 text-left">
+                        <label for="fecha_0" class="block text-gray-300 text-sm font-bold mb-2">Fecha:</label>
+                        <input type="date" id="fecha_0" name="fecha_0" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-900 text-white" required>
+                    </div>
+                    <div class="mb-4 text-left">
+                        <label for="horas_0" class="block text-gray-300 text-sm font-bold mb-2">Horas:</label>
+                        {# Cambiado a type="text" para permitir coma decimal #}
+                        <input type="text" id="horas_0" name="horas_0" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-900 text-white" placeholder="Ej: 8,5 o 15" required>
+                    </div>
+                    <div class="mb-4 text-left">
+                        <label for="obs_0" class="block text-gray-300 text-sm font-bold mb-2">Observación (opcional):</label>
+                        <textarea id="obs_0" name="obs_0" rows="3" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-900 text-white" placeholder="Detalles adicionales sobre las horas..."></textarea>
+                    </div>
+                    <div class="mb-4 text-left flex items-center">
+                        <input type="checkbox" id="feriado_0" name="feriado_0" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="feriado_0" class="text-gray-300 text-sm font-bold">Es Feriado / Domingo (100%)</label>
+                    </div>
+                </div>
             </div>
-            <div class="mb-4">
-                <label for="horas_${entryCount}" class="block text-gray-300 text-sm font-bold mb-2">Horas:</label>
-                <input type="number" id="horas_${entryCount}" name="horas_${entryCount}"
-                       class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200"
-                       min="0" max="24" placeholder="Ej: 8" value="${initialData.horas || ''}" required>
+
+            <button type="button" id="add_registro" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-md mb-6">
+                Añadir Otro Registro
+            </button>
+
+            <div class="flex flex-wrap justify-center gap-4">
+                <button type="submit" name="action" value="save_records" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                    Guardar Registros
+                </button>
+                <button type="submit" name="action" value="generate_pdf" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                    Generar PDF
+                </button>
+                <a href="{{ url_for('main.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                    Cancelar
+                </a>
             </div>
-            <div class="mb-4">
-                <label for="obs_${entryCount}" class="block text-gray-300 text-sm font-bold mb-2">Observaciones:</label>
-                <textarea id="obs_${entryCount}" name="obs_${entryCount}" rows="3"
-                          class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200 resize-none"
-                          placeholder="Ej: Reunión de proyecto, tarea urgente">${initialData.observacion || ''}</textarea>
-            </div>
-            <div class="flex items-center mt-4">
-                <input type="checkbox" id="feriado_${entryCount}" name="feriado_${entryCount}"
-                       class="form-checkbox h-5 w-5 text-blue-600 rounded-md focus:ring-blue-500 border-gray-500 bg-gray-200 cursor-pointer"
-                       ${initialData.feriado ? 'checked' : ''}>
-                <label for="feriado_${entryCount}" class="ml-2 text-gray-300 text-base cursor-pointer">Día Feriado / Domingo</label>
-            </div>
-        `;
-        container.appendChild(newEntryDiv);
+        </form>
+    </div>
 
-        // Añadir evento para eliminar la fila
-        newEntryDiv.querySelector('.remove-entry-button').addEventListener('click', function() {
-            newEntryDiv.remove();
-        });
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let registroIndex = 0; // Para el primer registro, que ya está en el HTML
+            const container = document.getElementById('registros_container');
+            const addRegistroBtn = document.getElementById('add_registro');
+            const form = document.getElementById('registroForm');
 
-        entryCount++;
-    }
+            // Función para actualizar la visibilidad de los botones de eliminar
+            function updateRemoveButtonsVisibility() {
+                const removeButtons = document.querySelectorAll('.remove-registro');
+                if (removeButtons.length > 1) {
+                    removeButtons.forEach(btn => btn.style.display = 'block');
+                } else {
+                    removeButtons.forEach(btn => btn.style.display = 'none');
+                }
+            }
 
-    // Añadir la primera fila al cargar la página
-    document.addEventListener('DOMContentLoaded', function() {
-        addEntryRow(); // Añade una fila por defecto al cargar
+            // Mostrar/ocultar el botón de eliminar para el registro inicial
+            updateRemoveButtonsVisibility();
 
-        document.getElementById('add-entry-button').addEventListener('click', function() {
-            addEntryRow();
-        });
+            addRegistroBtn.addEventListener('click', function() {
+                registroIndex++;
+                const newRegistroHtml = `
+                    <div class="registro-item bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600 relative">
+                        <button type="button" class="remove-registro absolute top-3 right-3 text-red-400 hover:text-red-600 focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        <div class="mb-4 text-left">
+                            <label for="fecha_${registroIndex}" class="block text-gray-300 text-sm font-bold mb-2">Fecha:</label>
+                            <input type="date" id="fecha_${registroIndex}" name="fecha_${registroIndex}" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-900 text-white" required>
+                        </div>
+                        <div class="mb-4 text-left">
+                            <label for="horas_${registroIndex}" class="block text-gray-300 text-sm font-bold mb-2">Horas:</label>
+                            {# Cambiado a type="text" para permitir coma decimal #}
+                            <input type="text" id="horas_${registroIndex}" name="horas_${registroIndex}" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-900 text-white" placeholder="Ej: 8,5 o 15" required>
+                        </div>
+                        <div class="mb-4 text-left">
+                            <label for="obs_${registroIndex}" class="block text-gray-300 text-sm font-bold mb-2">Observación (opcional):</label>
+                            <textarea id="obs_${registroIndex}" name="obs_${registroIndex}" rows="3" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-900 text-white" placeholder="Detalles adicionales sobre las horas..."></textarea>
+                        </div>
+                        <div class="mb-4 text-left flex items-center">
+                            <input type="checkbox" id="feriado_${registroIndex}" name="feriado_${registroIndex}" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="feriado_${registroIndex}" class="text-gray-300 text-sm font-bold">Es Feriado / Domingo (100%)</label>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', newRegistroHtml);
+                updateRemoveButtonsVisibility();
+            });
 
-        // Event listener para el botón "Guardar Registros"
-        document.getElementById('save-button').addEventListener('click', function() {
-            showConfirmationModal('¿Estás seguro de que quieres guardar estos registros?', function(confirmed) {
-                if (confirmed) {
-                    // Añadir un campo oculto para indicar la acción de guardar
-                    const form = document.getElementById('multiRegistroForm');
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'action';
-                    hiddenInput.value = 'save_records';
-                    form.appendChild(hiddenInput);
-                    form.submit();
+            // Delegación de eventos para los botones de eliminar
+            container.addEventListener('click', function(event) {
+                if (event.target.closest('.remove-registro')) {
+                    const itemToRemove = event.target.closest('.registro-item');
+                    if (itemToRemove) {
+                        itemToRemove.remove();
+                        updateRemoveButtonsVisibility();
+                    }
                 }
             });
-        });
 
-        // Event listener para el botón "Generar PDF"
-        document.getElementById('generate-pdf-button').addEventListener('click', function() {
-            showConfirmationModal('¿Estás seguro de que quieres generar el PDF con todos tus registros guardados?', function(confirmed) {
-                if (confirmed) {
-                    // Añadir un campo oculto para indicar la acción de generar PDF
-                    const form = document.getElementById('multiRegistroForm');
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'action';
-                    hiddenInput.value = 'generate_pdf';
-                    form.appendChild(hiddenInput);
-                    form.submit();
-                }
+            // Script para reemplazar comas por puntos antes de enviar el formulario
+            form.addEventListener('submit', function(event) {
+                const horasInputs = form.querySelectorAll('input[name^="horas_"]');
+                horasInputs.forEach(input => {
+                    input.value = input.value.replace(',', '.');
+                });
             });
         });
-    });
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}

@@ -1,40 +1,69 @@
 {% extends "base.html" %}
 
-{% block title %}Perfil de Usuario{% endblock %}
+{% block title %}Mi Perfil{% endblock %}
 
 {% block content %}
-<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700 max-w-md mx-auto">
-    <h1 class="text-4xl font-bold mb-6 text-white">Mi Perfil</h1>
-    <p class="text-lg mb-8 text-gray-300">Aquí puedes actualizar tu información de cuenta.</p>
+<div class="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-gray-800 p-10 rounded-xl shadow-lg text-center">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+            Mi Perfil
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-400">
+            Aquí puedes ver y actualizar tu información.
+        </p>
 
-    <form method="POST" action="{{ url_for('main.perfil') }}" class="text-left">
-        {{ form.csrf_token }} {# Token CSRF para seguridad #}
+        {# Asegúrate de que este formulario esté completo con los campos que necesites para editar el perfil #}
+        {# Este es un ejemplo básico, ajusta los campos según tu LoginForm o ProfileForm #}
+        <form method="POST" action="{{ url_for('main.profile') }}" class="text-left"> {# ¡CORREGIDO AQUÍ! #}
+            {# Si usas Flask-WTF para este formulario, incluye hidden_tag() #}
+            {# {{ form.hidden_tag() }} #}
 
-        <div class="mb-6">
-            <label for="{{ form.username.id }}" class="block text-gray-300 text-sm font-bold mb-2">Nombre de Usuario:</label>
-            {{ form.username(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200") }}
-            {% for error in form.username.errors %}
-                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
-            {% endfor %}
+            <div class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-300">Nombre de Usuario:</label>
+                    <input type="text" id="username" name="username" value="{{ current_user.username }}" readonly
+                           class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-300">Email:</label>
+                    <input type="email" id="email" name="email" value="{{ current_user.email }}" readonly
+                           class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="area" class="block text-sm font-medium text-gray-300">Área:</label>
+                    <input type="text" id="area" name="area" value="{{ current_user.area if current_user.area else '' }}" readonly
+                           class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                {# Puedes añadir más campos aquí si tu modelo User tiene más atributos #}
+            </div>
+
+            {# Si este formulario es solo para mostrar, no necesitarías un botón de submit.
+               Si es para editar, deberías tener un formulario WTForms y un botón de submit. #}
+            {# <div class="mt-6">
+                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    Actualizar Perfil
+                </button>
+            </div> #}
+        </form>
+
+        <div class="mt-6">
+            <a href="{{ url_for('main.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                Volver al Dashboard
+            </a>
         </div>
 
-        <div class="mb-6">
-            <label for="{{ form.email.id }}" class="block text-gray-300 text-sm font-bold mb-2">Correo Electrónico:</label>
-            {{ form.email(class="shadow-sm appearance-none border border-gray-600 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 hover:bg-white transition duration-200") }}
-            {% for error in form.email.errors %}
-                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
-            {% endfor %}
-        </div>
-
-        <div class="mt-8 text-center">
-            <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-10 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
-                Actualizar
-            </button>
-        </div>
-    </form>
-
-    <p class="mt-10 text-gray-400 text-sm">
-        <a href="{{ url_for('main.index') }}" class="text-blue-400 hover:underline">Volver al Dashboard</a>
-    </p>
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mt-4 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="p-3 rounded-md text-sm {% if category == 'success' %}bg-green-500 text-white{% elif category == 'error' %}bg-red-500 text-white{% elif category == 'info' %}bg-blue-500 text-white{% else %}bg-gray-500 text-white{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
 </div>
-{% endblock %}
+{% endblock content %}

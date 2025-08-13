@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="bg-gray-800 p-10 rounded-xl shadow-2xl text-center border border-gray-700 max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold mb-6 text-white">Historial de Horas de {{ user.username }}</h1>
+    <p class="text-lg mb-4 text-gray-300">Aquí puedes ver todos los registros de horas de este usuario.</p>
+    <p class="text-lg mb-8 text-gray-300">Miembro desde: 
+        <span class="font-bold text-purple-400">
+            {{ registered_at.strftime('%d/%m/%Y %H:%M:%S') if registered_at else 'N/A' }}
+        </span>
+    </p>
+
+    <div class="overflow-x-auto mb-8">
+        <table class="min-w-full bg-gray-700 rounded-lg shadow-md overflow-hidden">
+            <thead class="bg-gray-600 text-white">
+                <tr>
+                    <th class="py-3 px-4 text-left text-sm font-semibold uppercase tracking-wider">Fecha</th>
+                    <th class="py-3 px-4 text-left text-sm font-semibold uppercase tracking-wider">Horas</th>
+                    <th class="py-3 px-4 text-left text-sm font-semibold uppercase tracking-wider">Tipo</th>
+                    <th class="py-3 px-4 text-left text-sm font-semibold uppercase tracking-wider">Observación</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-600">
+                {% for registro in registros %}
+                <tr class="hover:bg-gray-600 transition duration-200">
+                    <td class="py-3 px-4 text-gray-300">{{ registro.fecha.strftime('%d/%m/%Y') }}</td>
+                    <td class="py-3 px-4 text-gray-300">{{ registro.horas }}</td>
+                    <td class="py-3 px-4 text-gray-300">{{ registro.tipo }}</td>
+                    <td class="py-3 px-4 text-gray-300">{{ registro.observacion if registro.observacion else 'N/A' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="py-3 px-4 text-gray-400 text-center">Este usuario no tiene registros de horas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-8">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Volver al Panel de Admin
+        </a>
+    </div>
+</div>
+{% endblock %}

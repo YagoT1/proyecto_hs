@@ -1,0 +1,59 @@
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="messages-container fixed top-4 right-4 z-50">
+          {% for category, message in messages %}
+            <div class="alert px-4 py-3 rounded-lg shadow-md mb-3 flex flex-row items-center space-x-3" role="alert"
+                 data-category="{{ category }}">
+                <div class="flex-shrink-0">
+                    {% if category == 'success' %}
+                        <svg class="w-5 h-5 text-green-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    {% elif category == 'error' %}
+                        <svg class="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                    {% elif category == 'info' %}
+                        <svg class="w-5 h-5 text-blue-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                    {% else %} {# Default for 'warning' or other categories #}
+                        <svg class="w-5 h-5 text-yellow-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0L14.71 9.774A1.999 1.999 0 0113 13H7c-1.722 0-2.02-2.13-.773-3.226L8.257 3.099zM10 15a1 1 0 100-2 1 1 0 000 2zm0-5a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                    {% endif %}
+                </div>
+                <p class="text-sm font-medium">{{ message }}</p>
+            </div>
+          {% endfor %}
+        </div>
+        <script>
+            // JavaScript para ocultar los mensajes después de un tiempo
+            document.addEventListener('DOMContentLoaded', function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    let bgColor = '';
+                    let textColor = '';
+                    switch(alert.dataset.category) {
+                        case 'success':
+                            bgColor = 'bg-green-200';
+                            textColor = 'text-green-800';
+                            break;
+                        case 'error':
+                            bgColor = 'bg-red-200';
+                            textColor = 'text-red-800';
+                            break;
+                        case 'info':
+                            bgColor = 'bg-blue-200';
+                            textColor = 'text-blue-800';
+                            break;
+                        default: // warning
+                            bgColor = 'bg-yellow-200';
+                            textColor = 'text-yellow-800';
+                            break;
+                    }
+                    alert.classList.add(bgColor, textColor);
+
+                    // Ocultar el mensaje después de 5 segundos
+                    setTimeout(() => {
+                        alert.style.transition = 'opacity 0.5s ease-out';
+                        alert.style.opacity = '0';
+                        setTimeout(() => alert.remove(), 500); // Eliminar del DOM después de la transición
+                    }, 5000);
+                });
+            });
+        </script>
+      {% endif %}
+    {% endwith %}

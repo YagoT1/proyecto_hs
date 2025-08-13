@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lo sentimos :(</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos generales del cuerpo y contenedor */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a202c; /* Fondo oscuro para el espacio */
+            color: #e2e8f0; /* Color de texto claro */
+            overflow-y: auto; /* ¡Permite desplazamiento vertical! */
+            overflow-x: hidden; /* Evita barra de desplazamiento horizontal */
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: #2d3748; /* Fondo más oscuro para el contenedor principal */
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+            margin-bottom: 1.5rem; /* Espacio entre el contenedor y el juego */
+            max-width: 90%;
+            width: 500px;
+        }
+
+        .code {
+            font-size: 5rem;
+            color: #f6ad55; /* Naranja más vibrante */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .message {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            color: #cbd5e0;
+        }
+
+        .btn {
+            text-decoration: none;
+            background-color: #4299e1; /* Azul más amigable */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px; /* Bordes más redondeados */
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos del juego */
+        #gameCanvas {
+            background-color: #000000; /* Fondo del canvas negro */
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: block;
+            margin: 0 auto;
+            cursor: none;
+            touch-action: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Contenedor del canvas para aplicar max-width y centrado */
+        #canvas-container {
+            position: relative;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            flex-grow: 1;
+            flex-shrink: 1;
+            max-width: 600px;
+            width: 95%;
+            margin: 0 auto;
+            aspect-ratio: 4/3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        #game-info {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            color: #fff;
+            font-size: 1.2rem;
+            z-index: 20;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            text-align: center;
+            z-index: 30;
+            border-radius: 10px;
+            display: none;
+            padding: 1rem;
+        }
+
+        #game-over-screen h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #EF4444;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+            animation: pulse-red 1.5s infinite alternate;
+        }
+
+        #game-over-screen p {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #FCD34D;
+            font-weight: 600;
+        }
+
+        #game-over-screen button {
+            margin-top: 1rem;
+            padding: 0.8rem 1.8rem;
+            font-size: 1.2rem;
+            background-color: #10B981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        #game-over-screen button:hover {
+            background-color: #059669;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes pulse-red {
+            0% { text-shadow: 0 0 5px rgba(239, 68, 68, 0.5); }
+            100% { text-shadow: 0 0 20px rgba(239, 68, 68, 1); }
+        }
+
+        /* Estilos para el formulario de reporte de errores (directamente incrustados) */
+        #error-report-section {
+            background-color: #2d3748; /* Fondo oscuro */
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
+            max-width: 500px;
+            width: 90%;
+            color: #e2e8f0; /* Texto claro */
+            display: none; /* Oculto por defecto */
+        }
+        #error-report-section h3 {
+            color: #63B3ED; /* Azul claro para el título del formulario */
+        }
+        #error-report-section p {
+            color: #cbd5e0; /* Gris claro para el texto del formulario */
+        }
+        #error-report-section input[type="text"],
+        #error-report-section input[type="email"],
+        #error-report-section textarea {
+            background-color: #4A5568; /* Fondo de inputs más oscuro */
+            border-color: #4A5568;
+            color: #e2e8f0; /* Texto de input claro */
+        }
+        #error-report-section input[type="text"]:focus,
+        #error-report-section input[type="email"]:focus,
+        #error-report-section textarea:focus {
+            border-color: #63B3ED; /* Borde de enfoque azul claro */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5); /* Sombra de enfoque azul claro */
+        }
+        #error-report-section .submit-btn {
+            background-color: #4299e1; /* Azul para el botón de enviar */
+            color: white;
+        }
+        #error-report-section .submit-btn:hover {
+            background-color: #3182ce;
+        }
+        #error-report-section .cancel-btn {
+            background-color: #718096; /* Gris para el botón de cancelar */
+            color: white;
+        }
+        #error-report-section .cancel-btn:hover {
+            background-color: #5A67D8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Icono SVG de página no encontrada/lupa -->
+        <svg class="w-24 h-24 mx-auto text-yellow-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+
+        <div class="code">404</div>
+        <div class="message">¡Página no encontrada!</div>
+        <div class="message">Lo sentimos, la página que buscas no existe o ha sido movida. Parece que te has perdido en el espacio. ¡ TEN CUIDADO CON LOS METEORITOS!</div>
+        <a href="/" class="btn">Volver al inicio</a>
+        <button id="show-report-form" class="btn bg-red-500 hover:bg-red-600 ml-4">Reportar Error</button>
+    </div>
+
+    <!-- Contenedor del juego -->
+    <div id="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-info">Puntuación: <span id="score">0</span></div>
+        <div id="game-over-screen">
+            <h2>¡Juego Terminado!</h2>
+            <p>Puntuación final: <span id="final-score">0</span></p>
+            <button id="restartButton">Jugar de Nuevo</button>
+        </div>
+    </div>
+
+    <!-- Formulario de reporte de errores (incrustado directamente) -->
+    <div id="error-report-section">
+        <h3 class="text-xl font-semibold text-blue-400 mb-4 text-center">¿Encontraste un error? ¡Ayúdanos a mejorarlo!</h3>
+        <p class="text-gray-400 mb-6 text-center">Por favor, describe lo que estabas haciendo cuando ocurrió este problema.</p>
+
+        <form method="POST" action="{{ url_for('main.report_error') }}" class="space-y-4">
+            {{ form.hidden_tag() }}
+
+            <div>
+                <label for="error-email-input" class="block text-sm font-medium text-gray-300">Tu Email (opcional)</label>
+                <input type="email" id="error-email-input" name="email" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="ej. tu@ejemplo.com" value="{{ form.email.data or '' }}">
+                {% if form.email.errors %}
+                    {% for error in form.email.errors %}
+                        <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="subject" class="block text-sm font-medium text-gray-300">Asunto del Error</label>
+                <input type="text" id="subject" name="subject" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="ej. Error al registrar horas" value="{{ form.subject.data or '' }}">
+                {% if form.subject.errors %}
+                    {% for error in form.subject.errors %}
+                        <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="message" class="block text-sm font-medium text-gray-300">Descripción Detallada del Error</label>
+                <textarea id="message" name="message" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-32" rows="5" placeholder="Describe el error que encontraste, qué estabas haciendo, y si es posible, la hora.">{{ form.message.data or '' }}</textarea>
+                {% if form.message.errors %}
+                    {% for error in form.message.errors %}
+                        <p class="text-red-400 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="hide-report-form" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                    Cancelar
+                </button>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    Enviar Reporte
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartButton = document.getElementById('restartButton');
+        const canvasContainer = document.getElementById('canvas-container');
+
+        // Configuración del juego (dimensiones lógicas, no píxeles reales del canvas)
+        const LOGICAL_WIDTH = 600;
+        const LOGICAL_HEIGHT = 450;
+        const PLAYER_SIZE = 40;
+        const STAR_SIZE = 15;
+        const ASTEROID_SIZE = 30;
+        const INITIAL_SPEED = 2; // Velocidad inicial de caída
+        const SPEED_INCREASE_INTERVAL = 10000; // Aumentar velocidad cada 10 segundos
+        const MAX_SPEED = 8; // Velocidad máxima
+
+        let playerX;
+        let playerY;
+        let score = 0;
+        let gameOver = false;
+        let stars = [];
+        let asteroids = [];
+        let gameSpeed = INITIAL_SPEED;
+        let lastSpeedIncreaseTime = 0;
+        let gameInterval;
+        let scaleFactor = 1;
+
+        // Ajustar tamaño del canvas para responsividad y calcular factor de escala
+        function resizeCanvas() {
+            canvas.width = canvasContainer.offsetWidth;
+            canvas.height = canvasContainer.offsetHeight;
+
+            scaleFactor = Math.min(canvas.width / LOGICAL_WIDTH, canvas.height / LOGICAL_HEIGHT);
+
+            playerX = (LOGICAL_WIDTH / 2 - PLAYER_SIZE / 2);
+            playerY = (LOGICAL_HEIGHT - PLAYER_SIZE - 10);
+
+            if (!gameOver) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawPlayer();
+            }
+        }
+
+        // Dibujar el fantasma (jugador)
+        function drawPlayer() {
+            ctx.fillStyle = '#60A5FA'; // Azul claro
+            ctx.beginPath();
+            // Cuerpo del fantasma
+            ctx.moveTo((playerX + PLAYER_SIZE / 2) * scaleFactor, playerY * scaleFactor);
+            ctx.bezierCurveTo((playerX + PLAYER_SIZE * 1.2) * scaleFactor, (playerY - PLAYER_SIZE * 0.5) * scaleFactor,
+                                (playerX + PLAYER_SIZE * 1.2) * scaleFactor, (playerY + PLAYER_SIZE * 0.5) * scaleFactor,
+                                (playerX + PLAYER_SIZE / 2) * scaleFactor, (playerY + PLAYER_SIZE) * scaleFactor);
+            ctx.bezierCurveTo((playerX - PLAYER_SIZE * 0.2) * scaleFactor, (playerY + PLAYER_SIZE * 0.5) * scaleFactor,
+                                (playerX - PLAYER_SIZE * 0.2) * scaleFactor, (playerY - PLAYER_SIZE * 0.5) * scaleFactor,
+                                (playerX + PLAYER_SIZE / 2) * scaleFactor, playerY * scaleFactor);
+            ctx.closePath();
+            ctx.fill();
+
+            // Ojos
+            ctx.fillStyle = '#1F2937'; // Gris oscuro
+            ctx.beginPath();
+            ctx.arc((playerX + PLAYER_SIZE * 0.35) * scaleFactor, (playerY + PLAYER_SIZE * 0.4) * scaleFactor, (PLAYER_SIZE * 0.1) * scaleFactor, 0, Math.PI * 2);
+            ctx.arc((playerX + PLAYER_SIZE * 0.65) * scaleFactor, (playerY + PLAYER_SIZE * 0.4) * scaleFactor, (PLAYER_SIZE * 0.1) * scaleFactor, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Boca (sonrisa o línea)
+            ctx.strokeStyle = '#1F2937';
+            ctx.lineWidth = 2 * scaleFactor;
+            ctx.beginPath();
+            ctx.arc((playerX + PLAYER_SIZE / 2) * scaleFactor, (playerY + PLAYER_SIZE * 0.7) * scaleFactor, (PLAYER_SIZE * 0.2) * scaleFactor, 0, Math.PI, false);
+            ctx.stroke();
+        }
+
+        // Dibujar una estrella
+        function drawStar(star) {
+            ctx.fillStyle = '#FCD34D'; // Amarillo
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                ctx.lineTo((star.x + Math.cos((18 + i * 72) * Math.PI / 180) * STAR_SIZE / 2) * scaleFactor,
+                           (star.y + Math.sin((18 + i * 72) * Math.PI / 180) * STAR_SIZE / 2) * scaleFactor);
+                ctx.lineTo((star.x + Math.cos((54 + i * 72) * Math.PI / 180) * STAR_SIZE / 4) * scaleFactor,
+                           (star.y + Math.sin((54 + i * 72) * Math.PI / 180) * STAR_SIZE / 4) * scaleFactor);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Dibujar un asteroide (forma irregular y rotación)
+        function drawAsteroid(asteroid) {
+            ctx.fillStyle = '#718096'; // Gris
+            ctx.strokeStyle = '#4A5568'; // Gris oscuro para el contorno
+            ctx.lineWidth = 2 * scaleFactor;
+
+            ctx.save(); // Guardar el estado actual del canvas
+            ctx.translate(asteroid.x * scaleFactor, asteroid.y * scaleFactor); // Mover el origen al centro del asteroide
+            ctx.rotate(asteroid.rotation); // Aplicar rotación
+
+            ctx.beginPath();
+            const numPoints = 6 + Math.floor(Math.random() * 3); // 6-8 puntos para irregularidad
+            const angleStep = (Math.PI * 2) / numPoints;
+            for (let i = 0; i < numPoints; i++) {
+                const angle = i * angleStep;
+                const radius = (ASTEROID_SIZE / 2) * (0.8 + Math.random() * 0.4); // Radio aleatorio para irregularidad
+                const x = Math.cos(angle) * radius * scaleFactor;
+                const y = Math.sin(angle) * radius * scaleFactor;
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Añadir algunas "grietas" o detalles
+            ctx.strokeStyle = '#374151'; // Gris aún más oscuro para las grietas
+            ctx.lineWidth = 1 * scaleFactor;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(Math.PI / 4) * (ASTEROID_SIZE / 4) * scaleFactor, Math.sin(Math.PI / 4) * (ASTEROID_SIZE / 4) * scaleFactor);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(Math.PI * 1.5) * (ASTEROID_SIZE / 3) * scaleFactor, Math.sin(Math.PI * 1.5) * (ASTEROID_SIZE / 3) * scaleFactor);
+            ctx.stroke();
+
+            ctx.restore(); // Restaurar el estado del canvas (deshacer translate y rotate)
+        }
+
+        // Actualizar la posición del jugador con el ratón/tacto
+        function updatePlayerPosition(event) {
+            if (gameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (event.touches) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+                event.preventDefault();
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            playerX = (clientX - rect.left) / scaleFactor - PLAYER_SIZE / 2;
+            playerY = (clientY - rect.top) / scaleFactor - PLAYER_SIZE / 2;
+
+            if (playerX < 0) playerX = 0;
+            if (playerX > LOGICAL_WIDTH - PLAYER_SIZE) playerX = LOGICAL_WIDTH - PLAYER_SIZE;
+            if (playerY < 0) playerY = 0;
+            if (playerY > LOGICAL_HEIGHT - PLAYER_SIZE) playerY = LOGICAL_HEIGHT - PLAYER_SIZE;
+        }
+
+        canvas.addEventListener('mousemove', updatePlayerPosition);
+        canvas.addEventListener('touchmove', updatePlayerPosition, { passive: false });
+        canvas.addEventListener('touchstart', updatePlayerPosition, { passive: false });
+
+        // Generar estrellas y asteroides
+        function spawnObject(type) {
+            const size = (type === 'star' ? STAR_SIZE : ASTEROID_SIZE);
+            const x = Math.random() * (LOGICAL_WIDTH - size);
+            const y = -size;
+            if (type === 'star') {
+                stars.push({ x, y });
+            } else {
+                asteroids.push({ x, y, rotation: Math.random() * Math.PI * 2 });
+            }
+        }
+
+        // Detectar colisiones (usando coordenadas lógicas)
+        function checkCollision(objX, objY, objSize, playerX, playerY, playerSize) {
+            return objX < playerX + playerSize &&
+                   objX + objSize > playerX &&
+                   objY < playerY + playerSize &&
+                   objY + objSize > playerY;
+        }
+
+        // Bucle principal del juego
+        function gameLoop(currentTime) {
+            try {
+                if (gameOver) {
+                    return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (currentTime - lastSpeedIncreaseTime > SPEED_INCREASE_INTERVAL && gameSpeed < MAX_SPEED) {
+                    gameSpeed += 0.5;
+                    lastSpeedIncreaseTime = currentTime;
+                }
+
+                for (let i = 0; i < stars.length; i++) {
+                    stars[i].y += gameSpeed;
+                    drawStar(stars[i]);
+
+                    if (checkCollision(stars[i].x, stars[i].y, STAR_SIZE, playerX, playerY, PLAYER_SIZE)) {
+                        score += 10;
+                        scoreDisplay.textContent = score;
+                        stars.splice(i, 1);
+                        i--;
+                    } else if (stars[i].y * scaleFactor > canvas.height) {
+                        stars.splice(i, 1);
+                        i--;
+                    }
+                }
+
+                for (let i = 0; i < asteroids.length; i++) {
+                    asteroids[i].y += gameSpeed;
+                    asteroids[i].rotation = (asteroids[i].rotation + 0.01) % (Math.PI * 2);
+                    drawAsteroid(asteroids[i]);
+
+                    if (checkCollision(asteroids[i].x, asteroids[i].y, ASTEROID_SIZE, playerX, playerY, PLAYER_SIZE)) {
+                        gameOver = true;
+                        finalScoreDisplay.textContent = score;
+                        gameOverScreen.style.display = 'flex';
+                        return;
+                    } else if (asteroids[i].y * scaleFactor > canvas.height) {
+                        asteroids.splice(i, 1);
+                        i--;
+                    }
+                }
+
+                drawPlayer();
+
+                requestAnimationFrame(gameLoop);
+            } catch (error) {
+                console.error("Error en gameLoop:", error);
+                gameOver = true;
+                finalScoreDisplay.textContent = score + " (Error)";
+                gameOverScreen.style.display = 'flex';
+            }
+        }
+
+        // Generación de objetos (estrellas y asteroides)
+        function startGameInterval() {
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                if (!gameOver) {
+                    if (Math.random() < 0.7) {
+                        spawnObject('star');
+                    } else {
+                        spawnObject('asteroid');
+                    }
+                }
+            }, 500);
+        }
+
+        // Reiniciar juego
+        restartButton.addEventListener('click', () => {
+            score = 0;
+            scoreDisplay.textContent = 0;
+            stars = [];
+            asteroids = [];
+            gameOver = false;
+            gameSpeed = INITIAL_SPEED;
+            lastSpeedIncreaseTime = 0;
+            gameOverScreen.style.display = 'none';
+            playerX = (LOGICAL_WIDTH / 2 - PLAYER_SIZE / 2);
+            playerY = (LOGICAL_HEIGHT - PLAYER_SIZE - 10);
+            startGameInterval();
+            requestAnimationFrame(gameLoop);
+        });
+
+        // Iniciar el juego al cargar la página
+        window.onload = function() {
+            setTimeout(() => {
+                resizeCanvas();
+                startGameInterval();
+                requestAnimationFrame(gameLoop);
+            }, 100);
+        };
+
+        // Escuchar cambios de tamaño de ventana para ajustar el canvas
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            if (!gameOver) {
+                requestAnimationFrame(gameLoop);
+            }
+        });
+
+        // Script para manejar la visibilidad del formulario de reporte de errores
+        document.addEventListener('DOMContentLoaded', function() {
+            const reportButton = document.getElementById('show-report-form');
+            const hideButton = document.getElementById('hide-report-form');
+            const reportSection = document.getElementById('error-report-section');
+            const firstInput = document.getElementById('error-email-input');
+
+            if (reportButton && reportSection) {
+                reportButton.addEventListener('click', function() {
+                    reportSection.style.display = 'block'; // Mostrar el formulario
+                    reportButton.style.display = 'none'; // Ocultar el botón de mostrar
+
+                    // Desplazar la vista al formulario
+                    reportSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Enfocar el primer input después de un breve retraso para asegurar que el scroll termine
+                    setTimeout(() => {
+                        if (firstInput) {
+                            firstInput.focus();
+                        }
+                    }, 300); // Pequeño retraso para que el scroll tenga tiempo de completarse
+                });
+            }
+
+            if (hideButton && reportSection) {
+                hideButton.addEventListener('click', function() {
+                    reportSection.style.display = 'none'; // Ocultar el formulario
+                    if (reportButton) {
+                        reportButton.style.display = 'inline-block'; // Mostrar el botón de mostrar
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

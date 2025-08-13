@@ -1,21 +1,17 @@
-import os
-from dotenv import load_dotenv # Importa load_dotenv
-
-# Carga las variables de entorno desde el archivo .env
-# ¡Esto debe ser lo primero que se ejecute!
+import os # Mantén esto si lo usas para otras cosas, pero no para dotenv
+from app import create_app, db # Asegúrate que 'db' se importe si lo necesitas en este archivo
+from dotenv import load_dotenv
 load_dotenv()
 
-from app import create_app, db # Importa la función 'create_app' y la instancia de 'db' desde tu paquete 'app'
-
-# Crea la instancia de la aplicación llamando a la fábrica
+# Crea la app
 app = create_app()
 
 if __name__ == '__main__':
-    # Asegúrate de estar dentro del contexto de la aplicación para interactuar con la base de datos
     with app.app_context():
-        # db.create_all() # COMENTAR O ELIMINAR: Flask-Migrate se encargará de esto
-        pass # Puedes dejarlo vacío o eliminar el 'with' si no necesitas db.create_all()
+        # Si necesitas crear tablas o inicializar algo con la base de datos, hazlo aquí.
+        # Por ejemplo, para crear todas las tablas definidas en tus modelos:
+        db.create_all()
+        pass
 
-    # Inicia el servidor de desarrollo de Flask
-    # La configuración de DEBUG se obtiene de FLASK_DEBUG en tu .env, a través de create_app()
-    app.run()
+    # Inicia el servidor en otro puerto (esto es para desarrollo local, no para PythonAnywhere)
+    app.run(host='0.0.0.0', port=5000, debug=True)
